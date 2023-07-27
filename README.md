@@ -24,3 +24,10 @@ The original text of the technical task:
 ```
 
 # Solution
+
+I think the best way to start the task is with the architecture of the future application. To do this, we will separate part of the implementation of the Buff System itself and the game code. Let's create a `UEBuffSystem` plugin, in which we will implement a set of classes and data, and the code of the game itself will store the implementation of connecting this plugin to the game in order to demonstrate its performance. Accordingly, we distinguish two main modules:
+* `UEBuffSystemDemo` - the main module of the game (demo application)
+* `UEBuffSystem` - a module wrapped in a plug-in, which can later be reused in other projects.
+
+## Step 1: Base classes
+
