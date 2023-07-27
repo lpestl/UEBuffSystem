@@ -31,3 +31,18 @@ I think the best way to start the task is with the architecture of the future ap
 
 ## Step 1: Base classes
 
+For simplicity and speed of implementation, let's create base classes that will be implemented as Actors. Let the base class hierarchy look something like this:
+
+```
+* BuffDebuffCarrierBase (AActor)
+|-* BuffCarrierBase
+|-* DebuffCarrierBase
+
+* BuffDebuffEffectBase (AActor)
+|-* BuffEffectBase
+|-* DebuffEffectBase
+```
+
+`BuffDebuffCarrierBase` - an entity in the world that will carry the buff or debuff effect. It can be a pickup in the world, or as indicated in the task, it can be a projectile bullet.
+
+`BuffDebuffEffectBase` - an abstract entity, in the life cycle of which the impact on characteristics will be carried out. When the "death" of the object - the effect will be removed.
