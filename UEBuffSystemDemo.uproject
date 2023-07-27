@@ -1,0 +1,13 @@
+{
+	"FileVersion": 3,
+	"EngineAssociation": "{F48E50C5-4414-3D07-2D1A-87BD6D712D06}",
+	"Category": "",
+	"Description": "",
+	"Modules": [
+		{
+			"Name": "UEBuffSystemDemo",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	]
+}
