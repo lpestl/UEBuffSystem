@@ -46,3 +46,14 @@ For simplicity and speed of implementation, let's create base classes that will 
 `BuffDebuffCarrierBase` - an entity in the world that will carry the buff or debuff effect. It can be a pickup in the world, or as indicated in the task, it can be a projectile bullet.
 
 `BuffDebuffEffectBase` - an abstract entity, in the life cycle of which the impact on characteristics will be carried out. When the "death" of the object - the effect will be removed.
+
+## Step 2: Demo characters
+
+In the main game module, let's create a simple enemy class. We will use it to test and demonstrate buff effects. The model will be used as a standard manikin. We will create the following characteristics for the character class:
+
+* base movement speed;
+* scale character;
+* character's health;
+* character color.
+
+This is enough to demonstrate.
