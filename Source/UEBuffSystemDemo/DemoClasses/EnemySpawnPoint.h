@@ -4,9 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Enemy.h"
 #include "EnemySpawnPoint.generated.h"
-
-class AEnemy;
 
 UCLASS()
 class UEBUFFSYSTEMDEMO_API AEnemySpawnPoint : public AActor
@@ -24,6 +23,9 @@ protected:
 public:
 	UFUNCTION()
 	bool SpawnEnemy();
+
+	UFUNCTION()
+	FEnemyCharacteristics CreateRandomCharacteristics();
 	
 	UFUNCTION()
 	void OnCurrentEnemyDestroyed(AActor* DestroyedActor);	
@@ -37,4 +39,13 @@ private:
 
 	UPROPERTY(meta=(AllowPrivateAccess="true"), EditAnywhere, BlueprintReadWrite, Category=Classes)
 	UClass *EnemyClass;
+
+	UPROPERTY(meta=(AllowPrivateAccess="true"), EditAnywhere, BlueprintReadWrite, Category=Classes)
+	TArray<float> AllowedStartSpeedList;
+
+	UPROPERTY(meta=(AllowPrivateAccess="true"), EditAnywhere, BlueprintReadWrite, Category=Classes)
+	TArray<FLinearColor> AllowedColors;
+
+	UPROPERTY(meta=(AllowPrivateAccess="true"), EditAnywhere, BlueprintReadWrite, Category=Classes)
+	TArray<float> AllowedHealthsList;	
 };

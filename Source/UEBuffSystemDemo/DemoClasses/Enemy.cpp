@@ -16,10 +16,6 @@ AEnemy::AEnemy()
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 
-	// set our turn rates for input
-	BaseTurnRate = 45.f;
-	BaseLookUpRate = 45.f;
-
 	// Don't rotate when the controller rotates. Let that just affect the camera.
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = true;
@@ -32,23 +28,33 @@ AEnemy::AEnemy()
 	GetCharacterMovement()->AirControl = 0.2f;
 }
 
+void AEnemy::Init(FEnemyCharacteristics InCharacteristics)
+{
+	InitCharacteristic = InCharacteristics;
+
+	// Apply speed
+	if (IsValid(GetCharacterMovement()))
+	{
+		GetCharacterMovement()->MaxWalkSpeed = InitCharacteristic.BaseMovementSpeed;
+	}
+
+	ChangeColor(InitCharacteristic.Color);
+
+	CurrentHealth = InitCharacteristic.Health;
+
+	SetActorScale3D(GetActorScale3D() * InitCharacteristic.ScaleMultiplier);
+}
+
 // Called when the game starts or when spawned
 void AEnemy::BeginPlay()
 {
-	Super::BeginPlay();
-	
+	Super::BeginPlay();	
 }
 
 // Called every frame
 void AEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-}
-
-// Called to bind functionality to input
-void AEnemy::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
 }
 
 void AEnemy::MoveForward(float Value)
@@ -80,9 +86,40 @@ void AEnemy::MoveRight(float Value)
 	}
 }
 
-void AEnemy::TurnAtRate(float Rate)
+void AEnemy::TakeDamage(float DamageValue)
 {
-	// calculate delta for this frame from the rate information
-	AddControllerYawInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds());
+	CurrentHealth -= DamageValue;
+	
+	OnHealthChanged.ExecuteIfBound();
+
+	if (CurrentHealth <= 0.f)
+	{
+		Destroy();
+	}
 }
+
+void AEnemy::TakeHeal(float HealValue)
+{
+	CurrentHealth += HealValue;
+
+	OnHealthChanged.ExecuteIfBound();
+}
+
+void AEnemy::AddSpeed(float InAddingValue)
+{
+	GetCharacterMovement()->MaxWalkSpeed += InAddingValue;
+
+	OnSpeedChanged.ExecuteIfBound();
+}
+
+float AEnemy::GetCurrentHealth() const
+{
+	return CurrentHealth;
+}
+
+float AEnemy::GetBaseSpeed() const
+{
+	return GetCharacterMovement()->MaxWalkSpeed;
+}
+
 

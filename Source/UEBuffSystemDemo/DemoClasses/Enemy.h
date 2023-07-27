@@ -6,6 +6,27 @@
 #include "GameFramework/Character.h"
 #include "Enemy.generated.h"
 
+DECLARE_DYNAMIC_DELEGATE(FOnHealthChanged);
+DECLARE_DYNAMIC_DELEGATE(FOnSpeedChanged);
+
+USTRUCT(BlueprintType)
+struct FEnemyCharacteristics
+{
+	GENERATED_BODY()
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Enemy Characteristics")
+	float BaseMovementSpeed = 600.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Enemy Characteristics")
+	float Health = 100.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Enemy Characteristics")
+	FLinearColor Color = FLinearColor::Red;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Enemy Characteristics")
+	float ScaleMultiplier = 1.f;
+};
+
 UCLASS(config=Game)
 class UEBUFFSYSTEMDEMO_API AEnemy : public ACharacter
 {
@@ -15,6 +36,8 @@ public:
 	// Sets default values for this character's properties
 	AEnemy();
 
+	virtual void Init(FEnemyCharacteristics InCharacteristics);
+	
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -23,27 +46,34 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
 	/** Called for forwards/backward input */
 	void MoveForward(float Value);
 
 	/** Called for side to side input */
 	void MoveRight(float Value);
 
-	/** 
-	 * Called via input to turn at a given rate. 
-	 * @param Rate	This is a normalized rate, i.e. 1.0 means 100% of desired turn rate
-	 */
-	void TurnAtRate(float Rate);
+	/** Called for take damage */
+	void TakeDamage(float DamageValue);
 
-public:
-	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
-	float BaseTurnRate;
+	/** Called for healing */
+	void TakeHeal(float HealValue);
 
-	/** Base look up/down rate, in deg/sec. Other scaling may affect final rate. */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
-	float BaseLookUpRate;
+	/** Called for change speed */
+	void AddSpeed(float InAddingValue);
+		
+	float GetCurrentHealth() const;
+	float GetBaseSpeed() const;
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void ChangeColor(FLinearColor InColor);
+
+	FOnHealthChanged OnHealthChanged;
+	FOnSpeedChanged OnSpeedChanged;
+private:
+	UPROPERTY(meta=(AllowPrivateAccess="true"), EditAnywhere, BlueprintReadWrite, Category="Enemy Characteristics")
+	FEnemyCharacteristics InitCharacteristic;
+
+	UPROPERTY(meta=(AllowPrivateAccess="true"), VisibleAnywhere, BlueprintReadOnly, Category="Enemy Characteristics")
+	float CurrentHealth;
+
 };

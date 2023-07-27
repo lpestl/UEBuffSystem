@@ -43,6 +43,10 @@ bool AEnemySpawnPoint::SpawnEnemy()
 		{
 			AIController->bSetControlRotationFromPawnOrientation = false;
 		}
+
+		// Random configure enemy
+		CurrentEnemy->Init(CreateRandomCharacteristics());
+		
 		// Subscribe on destroyed enemy event
 		SpawnedEnemy->OnDestroyed.AddDynamic(this, &AEnemySpawnPoint::OnCurrentEnemyDestroyed);
 
@@ -52,6 +56,32 @@ bool AEnemySpawnPoint::SpawnEnemy()
 
 	// spawn failed
 	return false;
+}
+
+FEnemyCharacteristics AEnemySpawnPoint::CreateRandomCharacteristics()
+{
+	FEnemyCharacteristics Characteristics;
+	if (AllowedStartSpeedList.Num() > 0)
+	{
+		int32 StartSpeedIndex = FMath::RandRange(0, AllowedStartSpeedList.Num() - 1);
+		Characteristics.BaseMovementSpeed = AllowedStartSpeedList[StartSpeedIndex];
+	}
+
+	if (AllowedHealthsList.Num() > 0)
+	{
+		int32 HealthIndex = FMath::RandRange(0, AllowedHealthsList.Num() - 1);
+		Characteristics.Health = AllowedHealthsList[HealthIndex];
+	}
+
+	if (AllowedColors.Num() > 0)
+	{
+		int32 ColorIndex = FMath::RandRange(0, AllowedColors.Num() - 1);
+		Characteristics.Color = AllowedColors[ColorIndex];
+	}
+
+	Characteristics.ScaleMultiplier = FMath::RandRange(0.5f, 2.0f);
+	
+	return Characteristics;
 }
 
 void AEnemySpawnPoint::OnCurrentEnemyDestroyed(AActor* DestroyedActor)
