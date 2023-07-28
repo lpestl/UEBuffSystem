@@ -103,6 +103,8 @@ void AUEBuffSystemDemoCharacter::BeginPlay()
 		VR_Gun->SetHiddenInGame(true, true);
 		Mesh1P->SetHiddenInGame(false, true);
 	}
+
+	ChangeGunVisual(CurrentGunType);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -148,7 +150,7 @@ void AUEBuffSystemDemoCharacter::SetupPlayerInputComponent(class UInputComponent
 void AUEBuffSystemDemoCharacter::OnFire()
 {
 	// try and fire a projectile
-	if (ProjectileClass != nullptr)
+	if (GunsBuffCarriersMap.Contains(CurrentGunType))
 	{
 		UWorld* const World = GetWorld();
 		if (World != nullptr)
@@ -157,7 +159,7 @@ void AUEBuffSystemDemoCharacter::OnFire()
 			{
 				const FRotator SpawnRotation = VR_MuzzleLocation->GetComponentRotation();
 				const FVector SpawnLocation = VR_MuzzleLocation->GetComponentLocation();
-				World->SpawnActor<AUEBuffSystemDemoProjectile>(ProjectileClass, SpawnLocation, SpawnRotation);
+				World->SpawnActor<AUEBuffSystemDemoProjectile>(GunsBuffCarriersMap[CurrentGunType], SpawnLocation, SpawnRotation);
 			}
 			else
 			{
@@ -170,7 +172,7 @@ void AUEBuffSystemDemoCharacter::OnFire()
 				ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
 
 				// spawn the projectile at the muzzle
-				World->SpawnActor<AUEBuffSystemDemoProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
+				World->SpawnActor<AUEBuffSystemDemoProjectile>(GunsBuffCarriersMap[CurrentGunType], SpawnLocation, SpawnRotation, ActorSpawnParams);
 			}
 		}
 	}
@@ -195,7 +197,9 @@ void AUEBuffSystemDemoCharacter::OnFire()
 
 void AUEBuffSystemDemoCharacter::OnChangeGun(EGunType InGunType)
 {
-	int32 a = 5;
+	CurrentGunType = InGunType;
+	
+	ChangeGunVisual(InGunType);
 }
 
 void AUEBuffSystemDemoCharacter::OnResetVR()

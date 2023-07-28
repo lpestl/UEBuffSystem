@@ -113,6 +113,9 @@ protected:
 	void OnChangeGun4() { OnChangeGun(EGunType::GRENADE); };
 	void OnChangeGun5() { OnChangeGun(EGunType::ELECTRO_GRENADE); };
 	void OnChangeGun(EGunType InGunType);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void ChangeGunVisual(EGunType InGunType);
 	
 	/** Resets HMD orientation and position in VR. */
 	void OnResetVR();
