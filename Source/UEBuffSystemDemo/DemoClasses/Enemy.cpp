@@ -135,7 +135,14 @@ void AEnemy::TakeHeal(float HealValue)
 
 void AEnemy::AddSpeed(float InAddingValue)
 {
-	GetCharacterMovement()->MaxWalkSpeed += InAddingValue;
+	if (GetCharacterMovement()->MaxWalkSpeed + InAddingValue >= 0)
+	{
+		GetCharacterMovement()->MaxWalkSpeed += InAddingValue;
+	}
+	else
+	{
+		GetCharacterMovement()->MaxWalkSpeed = 0;
+	}
 
 	if (OnSpeedChanged.IsBound())
 	{
