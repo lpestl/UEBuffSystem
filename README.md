@@ -35,12 +35,8 @@ For simplicity and speed of implementation, let's create base classes that will 
 
 ```
 * BuffDebuffCarrierBase (AActor)
-|-* BuffCarrierBase
-|-* DebuffCarrierBase
 
 * BuffDebuffEffectBase (AActor)
-|-* BuffEffectBase
-|-* DebuffEffectBase
 ```
 
 `BuffDebuffCarrierBase` - an entity in the world that will carry the buff or debuff effect. It can be a pickup in the world, or as indicated in the task, it can be a projectile bullet.
@@ -57,3 +53,5 @@ In the main game module, let's create a simple enemy class. We will use it to te
 * character color.
 
 This is enough to demonstrate.
+
+## TODO:
