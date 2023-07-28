@@ -50,8 +50,8 @@ void ABuffDebuffCarrierBase::OnHit(
 				UClass *EffectClass = BuffData.EffectClass.LoadSynchronous();
 				if (EffectClass != nullptr)
 				{
-					auto Bullet = World->SpawnActor<ABuffDebuffEffectBase>(EffectClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
-					Bullet->Init(BuffData);
+					auto Effect = World->SpawnActor<ABuffDebuffEffectBase>(EffectClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
+					Effect->Init(BuffData);
 				}
 			}
 		}

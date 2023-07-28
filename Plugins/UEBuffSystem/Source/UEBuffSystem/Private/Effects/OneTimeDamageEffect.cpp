@@ -3,6 +3,8 @@
 
 #include "Effects/OneTimeDamageEffect.h"
 
+#include "Interfaces/IBuffReceiver.h"
+
 
 // Sets default values
 AOneTimeDamageEffect::AOneTimeDamageEffect()
@@ -11,16 +13,34 @@ AOneTimeDamageEffect::AOneTimeDamageEffect()
 	PrimaryActorTick.bCanEverTick = true;
 }
 
-// Called when the game starts or when spawned
-void AOneTimeDamageEffect::BeginPlay()
+void AOneTimeDamageEffect::Init(const FBuffDataTableRow& InBuffData)
 {
-	Super::BeginPlay();
+	Super::Init(InBuffData);
+
+	CollisionComp->SetSphereRadius(BuffData.EffectRadius);
 	
+	CollisionComp->GetOverlappingActors(OverlappingActors, UBuffReceiver::StaticClass());
+	ApplyEffect();
+	ApplyEffect_Implementation();
 }
 
-// Called every frame
-void AOneTimeDamageEffect::Tick(float DeltaTime)
+void AOneTimeDamageEffect::ApplyEffect_Implementation()
 {
-	Super::Tick(DeltaTime);
-}
+	Super::ApplyEffect_Implementation();
 
+	for (auto AffectedActor : OverlappingActors)
+	{
+		if (AffectedActor->GetClass()->ImplementsInterface(UBuffReceiver::StaticClass()))
+		{
+			if (BuffData.HealthImpactValue != 0.f)
+			{
+				IBuffReceiver::Execute_ImpactHealth(AffectedActor, BuffData.HealthImpactValue);
+			}
+
+			if (BuffData.SpeedImpactValue != 0.f)
+			{
+				IBuffReceiver::Execute_ImpactSpeed(AffectedActor, BuffData.SpeedImpactValue);
+			}
+		}
+	}
+}
