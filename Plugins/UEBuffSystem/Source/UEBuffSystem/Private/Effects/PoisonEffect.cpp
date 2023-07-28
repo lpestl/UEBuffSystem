@@ -1,19 +1,19 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Effects/OneTimeDamageEffect.h"
+#include "Effects/PoisonEffect.h"
 
 #include "Interfaces/IBuffReceiver.h"
 
 
 // Sets default values
-AOneTimeDamageEffect::AOneTimeDamageEffect()
+APoisonEffect::APoisonEffect()
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 }
 
-void AOneTimeDamageEffect::Init(const FBuffDataTableRow& InBuffData)
+void APoisonEffect::Init(const FBuffDataTableRow& InBuffData)
 {
 	Super::Init(InBuffData);
 
@@ -23,12 +23,16 @@ void AOneTimeDamageEffect::Init(const FBuffDataTableRow& InBuffData)
 	ApplyEffect();
 }
 
-void AOneTimeDamageEffect::ApplyEffect_Implementation()
+void APoisonEffect::ApplyEffect_Implementation()
 {
 	Super::ApplyEffect_Implementation();
 
 	for (auto AffectedActor : OverlappingActors)
 	{
+		if (!IsValid(AffectedActor))
+		{
+			continue;
+		}
 		if (AffectedActor->GetClass()->ImplementsInterface(UBuffReceiver::StaticClass()))
 		{
 			if (BuffData.HealthImpactValue != 0.f)
@@ -43,3 +47,10 @@ void AOneTimeDamageEffect::ApplyEffect_Implementation()
 		}
 	}
 }
+
+// Called every frame
+void APoisonEffect::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+}
+
