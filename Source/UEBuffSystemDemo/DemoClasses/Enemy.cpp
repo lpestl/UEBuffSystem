@@ -89,9 +89,12 @@ void AEnemy::MoveRight(float Value)
 void AEnemy::TakeDamage(float DamageValue)
 {
 	CurrentHealth -= DamageValue;
-	
-	OnHealthChanged.ExecuteIfBound();
 
+	if (OnHealthChanged.IsBound())
+	{
+		OnHealthChanged.Broadcast();
+	}
+	
 	if (CurrentHealth <= 0.f)
 	{
 		Destroy();
@@ -102,14 +105,20 @@ void AEnemy::TakeHeal(float HealValue)
 {
 	CurrentHealth += HealValue;
 
-	OnHealthChanged.ExecuteIfBound();
+	if (OnHealthChanged.IsBound())
+	{
+		OnHealthChanged.Broadcast();
+	}
 }
 
 void AEnemy::AddSpeed(float InAddingValue)
 {
 	GetCharacterMovement()->MaxWalkSpeed += InAddingValue;
 
-	OnSpeedChanged.ExecuteIfBound();
+	if (OnSpeedChanged.IsBound())
+	{
+		OnSpeedChanged.Broadcast();
+	}
 }
 
 float AEnemy::GetCurrentHealth() const

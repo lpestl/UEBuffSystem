@@ -6,8 +6,8 @@
 #include "GameFramework/Character.h"
 #include "Enemy.generated.h"
 
-DECLARE_DYNAMIC_DELEGATE(FOnHealthChanged);
-DECLARE_DYNAMIC_DELEGATE(FOnSpeedChanged);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnHealthChanged);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnSpeedChanged);
 
 USTRUCT(BlueprintType)
 struct FEnemyCharacteristics
@@ -60,15 +60,22 @@ public:
 
 	/** Called for change speed */
 	void AddSpeed(float InAddingValue);
-		
+
+	UFUNCTION(BlueprintCallable)
 	float GetCurrentHealth() const;
+
+	UFUNCTION(BlueprintCallable)
 	float GetBaseSpeed() const;
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void ChangeColor(FLinearColor InColor);
-
+	
+	UPROPERTY(BlueprintAssignable, Category = "Enemy Characteristics")
 	FOnHealthChanged OnHealthChanged;
+	
+	UPROPERTY(BlueprintAssignable, Category = "Enemy Characteristics")
 	FOnSpeedChanged OnSpeedChanged;
+	
 private:
 	UPROPERTY(meta=(AllowPrivateAccess="true"), EditAnywhere, BlueprintReadWrite, Category="Enemy Characteristics")
 	FEnemyCharacteristics InitCharacteristic;
