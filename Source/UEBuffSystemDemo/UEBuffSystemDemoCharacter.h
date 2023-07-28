@@ -14,6 +14,15 @@ class UMotionControllerComponent;
 class UAnimMontage;
 class USoundBase;
 
+UENUM(BlueprintType)
+enum class EGunType : uint8 {
+	INSTANT_LIFE_REDUCTION = 0	UMETA(DisplayName = "Instant life reduction"),
+	GRADUAL_DECLINE_LIFE = 1	UMETA(DisplayName = "Gradual decline in life."),
+	SPEED_REDUCTION = 2			UMETA(DisplayName = "Speed reduction"),
+	GRENADE = 3					UMETA(DisplayName = "Grenade"),
+	ELECTRO_GRENADE = 4			UMETA(DisplayName = "Electro Grenade")
+};
+
 UCLASS(config=Game)
 class AUEBuffSystemDemoCharacter : public ACharacter
 {
@@ -24,7 +33,7 @@ class AUEBuffSystemDemoCharacter : public ACharacter
 	USkeletalMeshComponent* Mesh1P;
 
 	/** Gun mesh: 1st person view (seen only by self) */
-	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
+	UPROPERTY(meta=(AllowPrivateAccess="true"), EditAnywhere, BlueprintReadWrite, Category = Mesh)
 	USkeletalMeshComponent* FP_Gun;
 
 	/** Location on gun mesh where projectiles should spawn. */
@@ -86,11 +95,25 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	uint8 bUsingMotionControllers : 1;
 
+	/** List of shells depending on the type of weapon */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Guns)
+	TMap<EGunType, UClass *> GunsBuffCarriersMap;
+
+	UPROPERTY()
+	EGunType CurrentGunType = EGunType::INSTANT_LIFE_REDUCTION;
+	
 protected:
 	
 	/** Fires a projectile. */
 	void OnFire();
 
+	void OnChangeGun1() { OnChangeGun(EGunType::INSTANT_LIFE_REDUCTION); };
+	void OnChangeGun2() { OnChangeGun(EGunType::GRADUAL_DECLINE_LIFE); };
+	void OnChangeGun3() { OnChangeGun(EGunType::SPEED_REDUCTION); };
+	void OnChangeGun4() { OnChangeGun(EGunType::GRENADE); };
+	void OnChangeGun5() { OnChangeGun(EGunType::ELECTRO_GRENADE); };
+	void OnChangeGun(EGunType InGunType);
+	
 	/** Resets HMD orientation and position in VR. */
 	void OnResetVR();
 

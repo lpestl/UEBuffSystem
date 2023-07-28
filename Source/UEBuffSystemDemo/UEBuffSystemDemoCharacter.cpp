@@ -120,6 +120,13 @@ void AUEBuffSystemDemoCharacter::SetupPlayerInputComponent(class UInputComponent
 	// Bind fire event
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AUEBuffSystemDemoCharacter::OnFire);
 
+	// Bind change gun
+	PlayerInputComponent->BindAction("ChangeGun1", IE_Pressed, this, &AUEBuffSystemDemoCharacter::OnChangeGun1);
+	PlayerInputComponent->BindAction("ChangeGun2", IE_Pressed, this, &AUEBuffSystemDemoCharacter::OnChangeGun2);
+	PlayerInputComponent->BindAction("ChangeGun3", IE_Pressed, this, &AUEBuffSystemDemoCharacter::OnChangeGun3);
+	PlayerInputComponent->BindAction("ChangeGun4", IE_Pressed, this, &AUEBuffSystemDemoCharacter::OnChangeGun4);
+	PlayerInputComponent->BindAction("ChangeGun5", IE_Pressed, this, &AUEBuffSystemDemoCharacter::OnChangeGun5);
+	
 	// Enable touchscreen input
 	EnableTouchscreenMovement(PlayerInputComponent);
 
@@ -184,6 +191,11 @@ void AUEBuffSystemDemoCharacter::OnFire()
 			AnimInstance->Montage_Play(FireAnimation, 1.f);
 		}
 	}
+}
+
+void AUEBuffSystemDemoCharacter::OnChangeGun(EGunType InGunType)
+{
+	int32 a = 5;
 }
 
 void AUEBuffSystemDemoCharacter::OnResetVR()

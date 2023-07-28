@@ -43,6 +43,11 @@ void AEnemy::Init(FEnemyCharacteristics InCharacteristics)
 	CurrentHealth = InitCharacteristic.Health;
 
 	SetActorScale3D(GetActorScale3D() * InitCharacteristic.ScaleMultiplier);
+
+	if (OnEnemyInitialized.IsBound())
+	{
+		OnEnemyInitialized.Broadcast();
+	}
 }
 
 // Called when the game starts or when spawned

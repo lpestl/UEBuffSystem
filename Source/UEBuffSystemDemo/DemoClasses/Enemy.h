@@ -8,6 +8,7 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnHealthChanged);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnSpeedChanged);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnEnemyInitialized);
 
 USTRUCT(BlueprintType)
 struct FEnemyCharacteristics
@@ -76,6 +77,8 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Enemy Characteristics")
 	FOnSpeedChanged OnSpeedChanged;
 	
+	UPROPERTY(BlueprintAssignable, Category = "Enemy Characteristics")
+	FOnEnemyInitialized OnEnemyInitialized;
 private:
 	UPROPERTY(meta=(AllowPrivateAccess="true"), EditAnywhere, BlueprintReadWrite, Category="Enemy Characteristics")
 	FEnemyCharacteristics InitCharacteristic;
