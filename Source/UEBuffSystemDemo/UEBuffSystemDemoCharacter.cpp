@@ -203,8 +203,11 @@ void AUEBuffSystemDemoCharacter::OnFire()
 				UClass *BulletClass = GunsData->CarrierClass.LoadSynchronous();
 				if (BulletClass != nullptr)
 				{
-					auto Bullet = World->SpawnActor<AUEBuffSystemDemoProjectile>(BulletClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
-					Bullet->Init(*GunsData);
+					auto Bullet = World->SpawnActor<ABuffDebuffCarrierBase>(BulletClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
+					if (Bullet != nullptr)
+					{
+						Bullet->Init(*GunsData);
+					}
 				}
 			}
 		}

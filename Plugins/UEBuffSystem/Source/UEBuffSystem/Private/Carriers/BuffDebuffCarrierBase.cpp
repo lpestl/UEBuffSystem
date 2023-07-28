@@ -3,6 +3,7 @@
 
 #include "Carriers/BuffDebuffCarrierBase.h"
 
+#include "Effects/BuffDebuffEffectBase.h"
 #include "Interfaces/IBuffReceiver.h"
 
 
@@ -36,9 +37,22 @@ void ABuffDebuffCarrierBase::OnHit(
 	{
 		if (OtherActor->GetClass()->ImplementsInterface(UBuffReceiver::StaticClass()))
 		{
-			if (BuffData.HealthImpactValue != 0.f)
+			UWorld* const World = GetWorld();
+			if (World != nullptr)
 			{
-				IBuffReceiver::Execute_ImpactHealth(OtherActor, -100);
+				const FRotator SpawnRotation = GetActorRotation();
+				const FVector SpawnLocation = GetActorLocation();
+
+				//Set Spawn Collision Handling Override
+				FActorSpawnParameters ActorSpawnParams;
+				ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+				UClass *EffectClass = BuffData.EffectClass.LoadSynchronous();
+				if (EffectClass != nullptr)
+				{
+					auto Bullet = World->SpawnActor<ABuffDebuffEffectBase>(EffectClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
+					Bullet->Init(BuffData);
+				}
 			}
 		}
 	}
