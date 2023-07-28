@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Engine/DataTable.h"
 #include "GameFramework/Character.h"
 #include "UEBuffSystemDemoCharacter.generated.h"
 
@@ -97,7 +98,7 @@ public:
 
 	/** List of shells depending on the type of weapon */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Guns)
-	TMap<EGunType, UClass *> GunsBuffCarriersMap;
+	UDataTable *GunsDataTable;	
 
 	UPROPERTY()
 	EGunType CurrentGunType = EGunType::INSTANT_LIFE_REDUCTION;

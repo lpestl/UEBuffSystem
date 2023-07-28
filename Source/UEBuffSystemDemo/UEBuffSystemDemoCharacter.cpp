@@ -11,6 +11,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "MotionControllerComponent.h"
 #include "XRMotionControllerBase.h" // for FXRMotionControllerBase::RightHandSourceId
+#include "DemoClasses/GunsData.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
@@ -150,7 +151,29 @@ void AUEBuffSystemDemoCharacter::SetupPlayerInputComponent(class UInputComponent
 void AUEBuffSystemDemoCharacter::OnFire()
 {
 	// try and fire a projectile
-	if (GunsBuffCarriersMap.Contains(CurrentGunType))
+	FName GunName;
+	switch (CurrentGunType)
+	{
+		case EGunType::INSTANT_LIFE_REDUCTION:
+			GunName = FName("Gun1");
+			break;
+		case EGunType::GRADUAL_DECLINE_LIFE:
+			GunName = FName("Gun2");
+			break;
+		case EGunType::SPEED_REDUCTION:
+			GunName = FName("Gun3");
+			break;
+		case EGunType::GRENADE:
+			GunName = FName("Gun4");
+			break;
+		case EGunType::ELECTRO_GRENADE:
+			GunName = FName("Gun5");
+			break;
+		default: break;
+	}
+	FGunsDataRow* GunsData = GunsDataTable->FindRow<FGunsDataRow>(GunName, TEXT(""));
+	
+	if (GunsData != nullptr)
 	{
 		UWorld* const World = GetWorld();
 		if (World != nullptr)
@@ -159,7 +182,12 @@ void AUEBuffSystemDemoCharacter::OnFire()
 			{
 				const FRotator SpawnRotation = VR_MuzzleLocation->GetComponentRotation();
 				const FVector SpawnLocation = VR_MuzzleLocation->GetComponentLocation();
-				World->SpawnActor<AUEBuffSystemDemoProjectile>(GunsBuffCarriersMap[CurrentGunType], SpawnLocation, SpawnRotation);
+				UClass *BulletClass = GunsData->CarrierClass.LoadSynchronous();
+				if (BulletClass != nullptr)
+				{
+					auto Bullet = World->SpawnActor<AUEBuffSystemDemoProjectile>(BulletClass, SpawnLocation, SpawnRotation);
+					Bullet->Init(*GunsData);
+				}
 			}
 			else
 			{
@@ -172,7 +200,12 @@ void AUEBuffSystemDemoCharacter::OnFire()
 				ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
 
 				// spawn the projectile at the muzzle
-				World->SpawnActor<AUEBuffSystemDemoProjectile>(GunsBuffCarriersMap[CurrentGunType], SpawnLocation, SpawnRotation, ActorSpawnParams);
+				UClass *BulletClass = GunsData->CarrierClass.LoadSynchronous();
+				if (BulletClass != nullptr)
+				{
+					auto Bullet = World->SpawnActor<AUEBuffSystemDemoProjectile>(BulletClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
+					Bullet->Init(*GunsData);
+				}
 			}
 		}
 	}

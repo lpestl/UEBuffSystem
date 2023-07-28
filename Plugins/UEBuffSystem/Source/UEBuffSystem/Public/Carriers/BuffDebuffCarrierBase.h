@@ -3,7 +3,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "BuffDataTableRow.h"
 #include "GameFramework/Actor.h"
+#include "Components/SphereComponent.h"
 #include "BuffDebuffCarrierBase.generated.h"
 
 UCLASS()
@@ -15,11 +17,19 @@ public:
 	// Sets default values for this actor's properties
 	ABuffDebuffCarrierBase();
 
+	virtual void Init(const FBuffDataTableRow& InData);
+	
+	UFUNCTION()
+	virtual void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+	
+	/** Returns CollisionComp subobject **/
+	USphereComponent* GetCollisionComp() const { return CollisionComp; }
+	
 protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+	/** Sphere collision component */
+	UPROPERTY(VisibleDefaultsOnly, Category=Projectile)
+	USphereComponent* CollisionComp;
 
-public:
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	UPROPERTY()
+	FBuffDataTableRow BuffData;
 };

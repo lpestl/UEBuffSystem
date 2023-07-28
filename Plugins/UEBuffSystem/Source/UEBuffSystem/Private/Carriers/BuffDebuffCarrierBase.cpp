@@ -3,24 +3,44 @@
 
 #include "Carriers/BuffDebuffCarrierBase.h"
 
+#include "Interfaces/IBuffReceiver.h"
+
 
 // Sets default values
 ABuffDebuffCarrierBase::ABuffDebuffCarrierBase()
 {
-	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	// Use a sphere as a simple collision representation
+	CollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComp"));
+	CollisionComp->InitSphereRadius(5.0f);
+	CollisionComp->BodyInstance.SetCollisionProfileName("Projectile");
+
+	CollisionComp->OnComponentHit.AddDynamic(this, &ABuffDebuffCarrierBase::OnHit);		// set up a notification for when this component hits something blocking
+
+	// Set as root component
+	RootComponent = CollisionComp;
 }
 
-// Called when the game starts or when spawned
-void ABuffDebuffCarrierBase::BeginPlay()
+void ABuffDebuffCarrierBase::Init(const FBuffDataTableRow& InData)
 {
-	Super::BeginPlay();
-	
+	BuffData = InData;
 }
 
-// Called every frame
-void ABuffDebuffCarrierBase::Tick(float DeltaTime)
+void ABuffDebuffCarrierBase::OnHit(
+	UPrimitiveComponent* HitComponent,
+	AActor* OtherActor,
+	UPrimitiveComponent* OtherComp,
+	FVector NormalImpulse,
+	const FHitResult& Hit)
 {
-	Super::Tick(DeltaTime);
+	if (OtherActor != nullptr)
+	{
+		if (OtherActor->GetClass()->ImplementsInterface(UBuffReceiver::StaticClass()))
+		{
+			if (BuffData.HealthImpactValue != 0.f)
+			{
+				IBuffReceiver::Execute_ImpactHealth(OtherActor, -100);
+			}
+		}
+	}
 }
 

@@ -56,6 +56,23 @@ void AEnemy::BeginPlay()
 	Super::BeginPlay();	
 }
 
+void AEnemy::ImpactHealth_Implementation(float Value)
+{
+	if (Value > 0)
+	{
+		TakeHeal(Value);
+	}
+	else
+	{
+		TakeDamage(FMath::Abs(Value));
+	}
+}
+
+void AEnemy::ImpactSpeed_Implementation(float Value)
+{
+	AddSpeed(Value);
+}
+
 // Called every frame
 void AEnemy::Tick(float DeltaTime)
 {

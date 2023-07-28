@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Interfaces/IBuffReceiver.h"
 #include "Enemy.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnHealthChanged);
@@ -29,7 +30,7 @@ struct FEnemyCharacteristics
 };
 
 UCLASS(config=Game)
-class UEBUFFSYSTEMDEMO_API AEnemy : public ACharacter
+class UEBUFFSYSTEMDEMO_API AEnemy : public ACharacter, public IBuffReceiver
 {
 	GENERATED_BODY()
 
@@ -44,6 +45,11 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
+	/** IBuffReceiver interface start*/
+	virtual void ImpactHealth_Implementation(float Value) override;
+	virtual void ImpactSpeed_Implementation(float Value) override;	
+	/** IBuffReceiver interface end*/
+	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
