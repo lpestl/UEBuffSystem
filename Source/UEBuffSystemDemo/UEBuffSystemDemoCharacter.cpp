@@ -1,7 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "UEBuffSystemDemoCharacter.h"
-#include "UEBuffSystemDemoProjectile.h"
 #include "Animation/AnimInstance.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -11,6 +10,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "MotionControllerComponent.h"
 #include "XRMotionControllerBase.h" // for FXRMotionControllerBase::RightHandSourceId
+#include "Carriers/Dynamic/BuffDebuffProjectileBase.h"
 #include "DemoClasses/GunsData.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
@@ -185,7 +185,7 @@ void AUEBuffSystemDemoCharacter::OnFire()
 				UClass *BulletClass = GunsData->CarrierClass.LoadSynchronous();
 				if (BulletClass != nullptr)
 				{
-					auto Bullet = World->SpawnActor<AUEBuffSystemDemoProjectile>(BulletClass, SpawnLocation, SpawnRotation);
+					auto Bullet = World->SpawnActor<ABuffDebuffProjectileBase>(BulletClass, SpawnLocation, SpawnRotation);
 					Bullet->Init(*GunsData);
 				}
 			}

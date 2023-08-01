@@ -3,6 +3,8 @@
 
 #include "Effects/BuffDebuffEffectBase.h"
 
+#include "Components/SphereComponent.h"
+
 
 // Sets default values
 ABuffDebuffEffectBase::ABuffDebuffEffectBase()

@@ -5,31 +5,25 @@
 #include "CoreMinimal.h"
 #include "BuffDataTableRow.h"
 #include "GameFramework/Actor.h"
-#include "Components/SphereComponent.h"
 #include "BuffDebuffCarrierBase.generated.h"
 
+/*
+ * Base class for buff carrier
+ */
 UCLASS()
 class UEBUFFSYSTEM_API ABuffDebuffCarrierBase : public AActor
 {
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this actor's properties
-	ABuffDebuffCarrierBase();
-
-	virtual void Init(const FBuffDataTableRow& InData);
-	
-	UFUNCTION()
-	virtual void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
-	
-	/** Returns CollisionComp subobject **/
-	USphereComponent* GetCollisionComp() const { return CollisionComp; }
+	/** For initialization, you need to transfer only data about the effect from the DataTable */
+	virtual void Init(const FBuffDataTableRow& InData)
+	{
+		BuffData = InData;
+	}
 	
 protected:
-	/** Sphere collision component */
-	UPROPERTY(VisibleDefaultsOnly, Category=Projectile)
-	USphereComponent* CollisionComp;
-
+	/** Buff Carrier Base class will only store effect data */
 	UPROPERTY()
 	FBuffDataTableRow BuffData;
 };

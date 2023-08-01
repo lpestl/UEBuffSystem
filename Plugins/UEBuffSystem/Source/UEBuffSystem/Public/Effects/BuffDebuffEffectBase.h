@@ -7,6 +7,8 @@
 #include "GameFramework/Actor.h"
 #include "BuffDebuffEffectBase.generated.h"
 
+class USphereComponent;
+
 UCLASS()
 class UEBUFFSYSTEM_API ABuffDebuffEffectBase : public AActor
 {
