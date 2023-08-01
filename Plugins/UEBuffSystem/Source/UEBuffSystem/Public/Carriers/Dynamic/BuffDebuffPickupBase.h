@@ -23,6 +23,6 @@ public:
 	
 protected:	
 	/** Sphere collision component */
-	UPROPERTY(VisibleDefaultsOnly, Category=Projectile)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Trigger)
 	USphereComponent* CollisionComp;
 };

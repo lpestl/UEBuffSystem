@@ -12,9 +12,6 @@
 // Sets default values
 ABuffDebuffProjectileBase::ABuffDebuffProjectileBase()
 {
-	// Set as root component
-	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
-	
 	// Use a sphere as a simple collision representation
 	CollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComp"));
 	if (CollisionComp)
@@ -29,9 +26,8 @@ ABuffDebuffProjectileBase::ABuffDebuffProjectileBase()
 		
 		// Subscribe to the "hit" method
 		CollisionComp->OnComponentHit.AddDynamic(this, &ABuffDebuffProjectileBase::OnHit);		// set up a notification for when this component hits something blocking
-
-		CollisionComp->SetupAttachment(RootComponent);
 	}
+	RootComponent = CollisionComp;
 	
 	// Use a ProjectileMovementComponent to govern this projectile's movement
 	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileComp"));
@@ -59,28 +55,37 @@ void ABuffDebuffProjectileBase::OnHit(
 	const FHitResult& Hit)
 {
 	// If hitting the actor AND the actor implements the "Buff Receiver" interface
-	if ((OtherActor != nullptr) && (OtherActor->GetClass()->ImplementsInterface(UBuffReceiver::StaticClass())))
+	if (OtherActor != nullptr)
 	{
-		UWorld* const World = GetWorld();
-		if (World != nullptr)
+		// Add hit impulse on physics component
+		if ((OtherActor != this) && (OtherComp != nullptr) && OtherComp->IsSimulatingPhysics())
 		{
-			const FRotator SpawnRotation = GetActorRotation();
-			const FVector SpawnLocation = GetActorLocation();
+			OtherComp->AddImpulseAtLocation(GetVelocity() * 100.0f, GetActorLocation());
+		}
 
-			// Set Spawn Collision Handling Override
-			FActorSpawnParameters ActorSpawnParams;
-			ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
-			UClass *EffectClass = BuffData.EffectClass.LoadSynchronous();
-			if (EffectClass != nullptr)
+		if (OtherActor->GetClass()->ImplementsInterface(UBuffReceiver::StaticClass()))
+		{
+			UWorld* const World = GetWorld();
+			if (World != nullptr)
 			{
-				// When an effect spawns, it automatically impacts objects
-				auto Effect = World->SpawnActor<ABuffDebuffEffectBase>(EffectClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
-				Effect->Init(BuffData);
-			}
+				const FRotator SpawnRotation = GetActorRotation();
+				const FVector SpawnLocation = GetActorLocation();
 
-			// After the effect spawns - the carrier object is no longer needed and can be destroyed
-			Destroy();
+				// Set Spawn Collision Handling Override
+				FActorSpawnParameters ActorSpawnParams;
+				ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+				UClass *EffectClass = BuffData.EffectClass.LoadSynchronous();
+				if (EffectClass != nullptr)
+				{
+					// When an effect spawns, it automatically impacts objects
+					auto Effect = World->SpawnActor<ABuffDebuffEffectBase>(EffectClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
+					Effect->Init(BuffData);
+				}
+
+				// After the effect spawns - the carrier object is no longer needed and can be destroyed
+				Destroy();
+			}
 		}
 	}
 }
