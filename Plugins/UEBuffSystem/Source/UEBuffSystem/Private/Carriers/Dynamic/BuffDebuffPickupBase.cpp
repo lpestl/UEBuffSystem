@@ -1,16 +1,15 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Carriers/Dynamic/BuffDebuffProjectileBase.h"
+#include "Carriers/Dynamic/BuffDebuffPickupBase.h"
 
 #include "Components/SphereComponent.h"
 #include "Effects/BuffDebuffEffectBase.h"
-#include "GameFramework/ProjectileMovementComponent.h"
 #include "Interfaces/IBuffReceiver.h"
 
 
 // Sets default values
-ABuffDebuffProjectileBase::ABuffDebuffProjectileBase()
+ABuffDebuffPickupBase::ABuffDebuffPickupBase()
 {
 	// Set as root component
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
@@ -22,43 +21,27 @@ ABuffDebuffProjectileBase::ABuffDebuffProjectileBase()
 		AddInstanceComponent(CollisionComp);
 
 		// Default collision settings (CDO settings settings for component)
-		CollisionComp->InitSphereRadius(5.0f);
-		CollisionComp->BodyInstance.SetCollisionProfileName("Projectile");
+		CollisionComp->InitSphereRadius(50.0f);
+		CollisionComp->BodyInstance.SetCollisionProfileName("ActivateCollision");
 		CollisionComp->SetWalkableSlopeOverride(FWalkableSlopeOverride(WalkableSlope_Unwalkable, 0.f));
 		CollisionComp->CanCharacterStepUpOn = ECB_No;
-		
-		// Subscribe to the "hit" method
-		CollisionComp->OnComponentHit.AddDynamic(this, &ABuffDebuffProjectileBase::OnHit);		// set up a notification for when this component hits something blocking
 
+		// Subscribe to the "OnBeginOverlap" method
+		CollisionComp->OnComponentBeginOverlap.AddDynamic(this, &ABuffDebuffPickupBase::OnActivateCollisionComponentBeginOverlap);
+		
 		CollisionComp->SetupAttachment(RootComponent);
 	}
-	
-	// Use a ProjectileMovementComponent to govern this projectile's movement
-	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileComp"));
-	if (ProjectileMovement)
-	{
-		AddInstanceComponent(ProjectileMovement);
-
-		// Default projectile settings (CDO setting for component)
-		ProjectileMovement->UpdatedComponent = CollisionComp;
-		ProjectileMovement->InitialSpeed = 3000.f;
-		ProjectileMovement->MaxSpeed = 3000.f;
-		ProjectileMovement->bRotationFollowsVelocity = true;
-		ProjectileMovement->bShouldBounce = true;
-	}
-
-	// Die after 3 seconds by default
-	InitialLifeSpan = 3.0f;
 }
 
-void ABuffDebuffProjectileBase::OnHit(
-	UPrimitiveComponent* HitComponent,
+void ABuffDebuffPickupBase::OnActivateCollisionComponentBeginOverlap(
+	UPrimitiveComponent* OverlappedComponent,
 	AActor* OtherActor,
 	UPrimitiveComponent* OtherComp,
-	FVector NormalImpulse,
-	const FHitResult& Hit)
+	int32 OtherBodyIndex,
+	bool bFromSweep,
+	const FHitResult& SweepResult)
 {
-	// If hitting the actor AND the actor implements the "Buff Receiver" interface
+	// If Overlapping actor valid AND the actor implements the "Buff Receiver" interface
 	if ((OtherActor != nullptr) && (OtherActor->GetClass()->ImplementsInterface(UBuffReceiver::StaticClass())))
 	{
 		UWorld* const World = GetWorld();
@@ -84,4 +67,3 @@ void ABuffDebuffProjectileBase::OnHit(
 		}
 	}
 }
-

@@ -17,4 +17,10 @@ struct FGunsDataRow : public FBuffDataTableRow
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Buff data")
 	EGunType GunType;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Buff data")
+	float HealthImpactValue;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Buff data")
+	float SpeedImpactValue;
 };

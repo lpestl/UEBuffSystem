@@ -18,9 +18,6 @@ public:
 	// Sets default values for this actor's properties
 	ABuffDebuffProjectileBase();
 
-	virtual void BeginPlay() override;
-	virtual void Tick(float DeltaTime) override;
-	
 	/** Returns CollisionComp subobject **/
 	USphereComponent* GetCollisionComp() const { return CollisionComp; }
 

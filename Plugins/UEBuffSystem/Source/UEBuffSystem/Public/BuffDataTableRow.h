@@ -29,12 +29,6 @@ struct FBuffDataTableRow : public FTableRowBase
 	float ImpactCycleTime;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Buff data")
-	float EffectRadius;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Buff data")
-	float HealthImpactValue;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Buff data")
-	float SpeedImpactValue;
+	float EffectRadius;	
 };
 
