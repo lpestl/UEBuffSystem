@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "BuffDataTableRow.h"
 #include "GameFramework/Actor.h"
 #include "BuffDebuffCarrierBase.generated.h"
 
@@ -16,14 +15,14 @@ class UEBUFFSYSTEM_API ABuffDebuffCarrierBase : public AActor
 	GENERATED_BODY()
 
 public:
-	/** For initialization, you need to transfer only data about the effect from the DataTable */
-	virtual void Init(const FBuffDataTableRow& InData)
+	/** For initialization, you need to transfer only class about the effect */
+	virtual void Init(UClass* InEffectClass)
 	{
-		BuffData = InData;
+		EffectClass = InEffectClass;
 	}
 	
 protected:
-	/** Buff Carrier Base class will only store effect data */
+	/** Buff Carrier Base class will only store effect class */
 	UPROPERTY()
-	FBuffDataTableRow BuffData;
+	UClass* EffectClass;
 };

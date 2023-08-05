@@ -75,12 +75,11 @@ void ABuffDebuffProjectileBase::OnHit(
 				FActorSpawnParameters ActorSpawnParams;
 				ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-				UClass *EffectClass = BuffData.EffectClass.LoadSynchronous();
 				if (EffectClass != nullptr)
 				{
 					// When an effect spawns, it automatically impacts objects
 					auto Effect = World->SpawnActor<ABuffDebuffEffectBase>(EffectClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
-					Effect->Init(BuffData);
+					//Effect->Init(BuffData);
 				}
 
 				// After the effect spawns - the carrier object is no longer needed and can be destroyed

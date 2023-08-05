@@ -56,21 +56,23 @@ void AEnemy::BeginPlay()
 	Super::BeginPlay();	
 }
 
-void AEnemy::ImpactHealth_Implementation(float Value)
+void AEnemy::BuffImpact_Implementation(UClass* InEffectClass)
 {
-	if (Value > 0)
-	{
-		TakeHeal(Value);
-	}
-	else
-	{
-		TakeDamage(FMath::Abs(Value));
-	}
-}
+	IBuffReceiver::BuffImpact_Implementation(InEffectClass);
 
-void AEnemy::ImpactSpeed_Implementation(float Value)
-{
-	AddSpeed(Value);
+	// if (const FGunsDataRow* GameBuffData = Cast<FGunsDataRow>(InBuffData))
+	// {
+	// 	if (GameBuffData->HealthImpactValue > 0)
+	// 	{
+	// 		TakeHeal(GameBuffData->HealthImpactValue);
+	// 	}
+	// 	else
+	// 	{
+	// 		TakeDamage(FMath::Abs(GameBuffData->HealthImpactValue));
+	// 	}
+	//
+	// 	AddSpeed(GameBuffData->SpeedImpactValue);
+	// }
 }
 
 // Called every frame

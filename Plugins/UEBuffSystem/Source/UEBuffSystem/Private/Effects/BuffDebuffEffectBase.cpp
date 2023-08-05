@@ -54,19 +54,19 @@ void ABuffDebuffEffectBase::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void ABuffDebuffEffectBase::Init(const FBuffDataTableRow& InBuffData)
-{
-	BuffData = InBuffData;
-	
-	SetLifeSpan(BuffData.LifeTimeEffect);
-
-	if (BuffData.ImpactCycleTime > 0.f)
-	{
-		UWorld* const World = GetWorld();
-		if (World != nullptr)
-		{
-			World->GetTimerManager().SetTimer(CycleTimerHandle, this, &ABuffDebuffEffectBase::ApplyEffect, BuffData.ImpactCycleTime, true);
-		}
-	}
-}
+// void ABuffDebuffEffectBase::Init(const FBuffDataTableRow& InBuffData)
+// {
+// 	BuffData = InBuffData;
+// 	
+// 	SetLifeSpan(BuffData.LifeTimeEffect);
+//
+// 	if (BuffData.ImpactCycleTime > 0.f)
+// 	{
+// 		UWorld* const World = GetWorld();
+// 		if (World != nullptr)
+// 		{
+// 			World->GetTimerManager().SetTimer(CycleTimerHandle, this, &ABuffDebuffEffectBase::ApplyEffect, BuffData.ImpactCycleTime, true);
+// 		}
+// 	}
+// }
 

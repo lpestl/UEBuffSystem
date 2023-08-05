@@ -22,12 +22,6 @@ class UEBUFFSYSTEM_API IBuffReceiver
 
 public:
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	void ImpactHealth(float Value);
-	virtual void ImpactHealth_Implementation(float Value) {};
-
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	void ImpactSpeed(float Value);
-	virtual void ImpactSpeed_Implementation(float Value) {};
-
-	// TODO: Maybe something else
+	void BuffImpact(UClass* InEffectClass);
+	virtual void BuffImpact_Implementation(UClass* InEffectClass) {};
 };

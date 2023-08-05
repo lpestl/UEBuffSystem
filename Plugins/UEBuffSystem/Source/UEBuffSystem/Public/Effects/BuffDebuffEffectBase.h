@@ -34,7 +34,7 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	
-	virtual void Init(const FBuffDataTableRow& InBuffData);
+	//virtual void Init(const FBuffDataTableRow& InBuffData);
 	
 	/** Returns CollisionComp subobject **/
 	USphereComponent* GetCollisionComp() const { return CollisionComp; }
@@ -44,8 +44,8 @@ protected:
 	UPROPERTY(VisibleDefaultsOnly, Category=Projectile)
 	USphereComponent* CollisionComp;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FBuffDataTableRow BuffData;
+	// UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	// FBuffDataTableRow BuffData;
 	
 	FTimerHandle CycleTimerHandle;
 };

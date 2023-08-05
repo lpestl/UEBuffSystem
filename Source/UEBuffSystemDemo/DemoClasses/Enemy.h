@@ -46,8 +46,7 @@ protected:
 
 public:
 	/** IBuffReceiver interface start*/
-	virtual void ImpactHealth_Implementation(float Value) override;
-	virtual void ImpactSpeed_Implementation(float Value) override;	
+	virtual void BuffImpact_Implementation(UClass* InEffectClass) override;
 	/** IBuffReceiver interface end*/
 	
 	// Called every frame
