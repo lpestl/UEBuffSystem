@@ -7,7 +7,7 @@
 
 class USphereComponent;
 
-UCLASS()
+UCLASS(Abstract)
 class UEBUFFSYSTEM_API UBuffDebuffEffectBase : public UActorComponent
 {
 	GENERATED_BODY()

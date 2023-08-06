@@ -37,14 +37,47 @@ void AEnemy::Init(FEnemyCharacteristics InCharacteristics)
 	if (IsValid(GetCharacterMovement()))
 	{
 		GetCharacterMovement()->MaxWalkSpeed = CurrentCharacteristics.BaseMovementSpeed;
+
+		if ((bIsRandomCharacteristics) && (AllowedSpeed.Num() > 0))
+		{
+			int32 Index = FMath::RandRange(0, AllowedSpeed.Num() - 1);
+			GetCharacterMovement()->MaxWalkSpeed = AllowedSpeed[Index];
+		}
 	}
 
-	ChangeColor(CurrentCharacteristics.Color);
+	// Apply color
+	if (bIsRandomCharacteristics && AllowedColors.Num() > 0)
+	{
+		int32 Index = FMath::RandRange(0, AllowedColors.Num() - 1);
+		ChangeColor(AllowedColors[Index]);
+	}
+	else
+	{
+		ChangeColor(CurrentCharacteristics.Color);
+	}
 
-	CurrentHealth = CurrentCharacteristics.Health;
+	// Apply health
+	if (bIsRandomCharacteristics && AllowedHealth.Num() > 0)
+	{		
+		int32 Index = FMath::RandRange(0, AllowedHealth.Num() - 1);
+		CurrentHealth = AllowedHealth[Index];
+	}
+	else
+	{
+		CurrentHealth = CurrentCharacteristics.Health;
+	}
 
-	SetActorScale3D(GetActorScale3D() * CurrentCharacteristics.ScaleMultiplier);
-
+	// Apply scale
+	if (bIsRandomCharacteristics)
+	{
+		float ScaleMultiplier = FMath::FRandRange(0.6f, 1.5f);		
+		SetActorScale3D(GetActorScale3D() * ScaleMultiplier);
+	}
+	else
+	{
+		SetActorScale3D(GetActorScale3D() * CurrentCharacteristics.ScaleMultiplier);
+	}
+	
 	if (OnEnemyInitialized.IsBound())
 	{
 		OnEnemyInitialized.Broadcast();
@@ -54,7 +87,7 @@ void AEnemy::Init(FEnemyCharacteristics InCharacteristics)
 // Called when the game starts or when spawned
 void AEnemy::BeginPlay()
 {
-	Super::BeginPlay();	
+	Super::BeginPlay();
 }
 
 void AEnemy::BuffImpact_Implementation(UClass* InEffectClass)

@@ -20,7 +20,7 @@ struct FEnemyCharacteristics
 	float BaseMovementSpeed = 600.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Enemy Characteristics")
-	float Health = 100.f;
+	float Health = 1000.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Enemy Characteristics")
 	FLinearColor Color = FLinearColor::Red;
@@ -92,6 +92,15 @@ private:
 	UPROPERTY(meta=(AllowPrivateAccess="true"), VisibleAnywhere, BlueprintReadOnly, Category="Enemy Characteristics")
 	float CurrentHealth = 100.f;
 	
-	UPROPERTY(meta=(AllowPrivateAccess="true"), VisibleAnywhere, BlueprintReadOnly, Category="Enemy Characteristics")
+	UPROPERTY(meta=(AllowPrivateAccess="true"), EditAnywhere, BlueprintReadWrite, Category="Enemy Characteristics")
 	bool bIsRandomCharacteristics = false;
+
+	UPROPERTY(meta=(AllowPrivateAccess="true"), EditAnywhere, BlueprintReadWrite, Category="Enemy Characteristics")
+	TArray<FLinearColor> AllowedColors;
+
+	UPROPERTY(meta=(AllowPrivateAccess="true"), EditAnywhere, BlueprintReadWrite, Category="Enemy Characteristics")
+	TArray<float> AllowedSpeed;
+
+	UPROPERTY(meta=(AllowPrivateAccess="true"), EditAnywhere, BlueprintReadWrite, Category="Enemy Characteristics")
+	TArray<float> AllowedHealth;
 };

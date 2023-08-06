@@ -3,6 +3,7 @@
 #include "SpawnPoint.h"
 
 #include "AIController.h"
+#include "Enemy.h"
 
 void ASpawnPoint::BeginPlay()
 {
@@ -44,6 +45,11 @@ void ASpawnPoint::SpawnActor()
 				if (AAIController *AIController = Cast<AAIController>(CurrentPawn->GetController()))
 				{
 					AIController->bSetControlRotationFromPawnOrientation = false;
+				}
+
+				if (auto CurrentEnemy = Cast<AEnemy>(CurrentPawn))
+				{
+					CurrentEnemy->Init(FEnemyCharacteristics {});
 				}
 			}
 			

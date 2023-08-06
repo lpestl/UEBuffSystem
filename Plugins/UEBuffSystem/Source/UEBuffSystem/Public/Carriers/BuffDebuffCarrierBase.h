@@ -11,7 +11,7 @@ class UBuffDebuffEffectBase;
 /*
  * Base class for buff carrier
  */
-UCLASS()
+UCLASS(Abstract)
 class UEBUFFSYSTEM_API ABuffDebuffCarrierBase : public AActor
 {
 	GENERATED_BODY()
