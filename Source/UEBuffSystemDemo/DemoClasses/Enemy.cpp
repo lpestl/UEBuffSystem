@@ -3,6 +3,7 @@
 
 #include "Enemy.h"
 
+#include "DrawDebugHelpers.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
@@ -30,19 +31,19 @@ AEnemy::AEnemy()
 
 void AEnemy::Init(FEnemyCharacteristics InCharacteristics)
 {
-	InitCharacteristic = InCharacteristics;
+	CurrentCharacteristics = InCharacteristics;
 
 	// Apply speed
 	if (IsValid(GetCharacterMovement()))
 	{
-		GetCharacterMovement()->MaxWalkSpeed = InitCharacteristic.BaseMovementSpeed;
+		GetCharacterMovement()->MaxWalkSpeed = CurrentCharacteristics.BaseMovementSpeed;
 	}
 
-	ChangeColor(InitCharacteristic.Color);
+	ChangeColor(CurrentCharacteristics.Color);
 
-	CurrentHealth = InitCharacteristic.Health;
+	CurrentHealth = CurrentCharacteristics.Health;
 
-	SetActorScale3D(GetActorScale3D() * InitCharacteristic.ScaleMultiplier);
+	SetActorScale3D(GetActorScale3D() * CurrentCharacteristics.ScaleMultiplier);
 
 	if (OnEnemyInitialized.IsBound())
 	{
@@ -79,6 +80,46 @@ void AEnemy::BuffImpact_Implementation(UClass* InEffectClass)
 void AEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	
+	// Simplified enemy movement logic.
+	// It is correct to implement this logic in the AIController class,
+	// but to keep it simple and fast, let's leave it here!
+
+	// Always moving forward
+	MoveForward(1.f);
+
+	// If the enemy ran into an obstacle, then turn it clockwise until the speed becomes normal.
+
+	//if (FMath::Abs(CurrentEnemy->GetVelocity().Size()) < 10.f)
+	{
+		// FHitResult will hold all data returned by our line collision query
+		FHitResult Hit;
+		FVector TraceEnd = GetActorLocation() + GetActorForwardVector() * 200.0f;
+
+		FCollisionQueryParams QueryParams;
+		QueryParams.AddIgnoredActor(this);
+
+		GetWorld()->LineTraceSingleByChannel(Hit, GetActorLocation(), TraceEnd, ECollisionChannel::ECC_MAX, QueryParams);
+
+// #if WITH_EDITOR
+// 		DrawDebugLine(GetWorld(), GetActorLocation(), TraceEnd, Hit.bBlockingHit ? FColor::Red : FColor::Green, false, 0.1f, 0, 1.0f);
+// 		//UE_LOG(LogTemp, Log, TEXT("Tracing line: %s to %s"), *GetActorLocation().ToCompactString(), *TraceEnd.ToCompactString());
+// #endif
+	
+		// If the trace hit something, bBlockingHit will be true,
+		// and its fields will be filled with detailed info about what was hit
+		if (Hit.bBlockingHit)
+		{
+			UE_LOG(LogTemp, Log, TEXT("Trace hit actor: %s"), *Hit.GetActor()->GetName());
+
+			float AngleRotate = FMath::RandRange(0, 360);
+			GetController()->SetControlRotation(
+				FRotator(
+					GetController()->GetControlRotation().Pitch,
+					AngleRotate,
+					GetController()->GetControlRotation().Roll));
+		}
+	}
 }
 
 void AEnemy::MoveForward(float Value)
@@ -161,5 +202,3 @@ float AEnemy::GetBaseSpeed() const
 {
 	return GetCharacterMovement()->MaxWalkSpeed;
 }
-
-

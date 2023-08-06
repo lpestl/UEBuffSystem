@@ -84,11 +84,14 @@ public:
 	
 	UPROPERTY(BlueprintAssignable, Category = "Enemy Characteristics")
 	FOnEnemyInitialized OnEnemyInitialized;
+	
 private:
 	UPROPERTY(meta=(AllowPrivateAccess="true"), EditAnywhere, BlueprintReadWrite, Category="Enemy Characteristics")
-	FEnemyCharacteristics InitCharacteristic;
+	FEnemyCharacteristics CurrentCharacteristics;
 
 	UPROPERTY(meta=(AllowPrivateAccess="true"), VisibleAnywhere, BlueprintReadOnly, Category="Enemy Characteristics")
-	float CurrentHealth;
-
+	float CurrentHealth = 100.f;
+	
+	UPROPERTY(meta=(AllowPrivateAccess="true"), VisibleAnywhere, BlueprintReadOnly, Category="Enemy Characteristics")
+	bool bIsRandomCharacteristics = false;
 };
