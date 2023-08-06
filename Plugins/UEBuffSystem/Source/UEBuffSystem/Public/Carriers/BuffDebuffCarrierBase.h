@@ -6,6 +6,8 @@
 #include "GameFramework/Actor.h"
 #include "BuffDebuffCarrierBase.generated.h"
 
+class UBuffDebuffEffectBase;
+
 /*
  * Base class for buff carrier
  */
@@ -14,15 +16,15 @@ class UEBUFFSYSTEM_API ABuffDebuffCarrierBase : public AActor
 {
 	GENERATED_BODY()
 
-public:
-	/** For initialization, you need to transfer only class about the effect */
-	virtual void Init(UClass* InEffectClass)
-	{
-		EffectClass = InEffectClass;
-	}
+protected:
+	void SpawnChildCarriers();
+
+	void ApplyEffects(const TArray<AActor *>& InTargets);
 	
 protected:
-	/** Buff Carrier Base class will only store effect class */
-	UPROPERTY()
-	UClass* EffectClass;
+	UPROPERTY(EditDefaultsOnly, Instanced, NoClear, Category="Carrier Children")
+	TArray<ABuffDebuffCarrierBase *> SpawningCarriers;
+
+	UPROPERTY(EditDefaultsOnly, Instanced, NoClear, Category="Carrier Children")
+	TArray<UBuffDebuffEffectBase *> SpawningEffects;
 };
