@@ -17,10 +17,10 @@ Simple system of Buffs (effects that affect game entities). The system allows yo
 
 # Technical task
 
-The original text of the technical task:
+The original text of the technical task (It is desirable to implement on UE4):
 
 ```
-Тестовое задание (ориентировочный эстимейт 3 часа)
+Тестовое задание
 
 Реализовать систему Баффов (эффекты, влияющие на игровые сущности). Реализовать именно новую систему, а не использовать Gameplay Ability System.
 
@@ -37,6 +37,40 @@ The original text of the technical task:
 ```
 
 # Idea
+
+The idea of the implementation is to create a flexible system for setting up buffs and their carriers. To do this, it is necessary to highlight the basic concepts:
+
+**Carrier** - is an actor on the stage that carries some set of effects. The carrier can be activated in many ways - it can be a projectile (like a bullet) that carries a buff/debuff effect (like a health reduction effect on hit).
+
+**Effect** - applicable to some game entity, which means it is logical to implement it as an ActorComponent. The effect can also be of different types - it can affect health, or speed, or somthing else.
+
+*Options*. Each **carrier** and each **effect** must have its own parameters. For example, a "carrier" in the form of a projectile should have **CarrierParams**:
+* projectile collision **radius**;
+* the **initial speed** of the projectile;
+* **lifetime**, so that the projectile is destroyed after a certain time.
+
+The **EffectParams** may be different for each effect type. The common parameters for all effects are the following:
+* the **name** of the effect;
+* Whether the effect **is cancelable** (does it cancel its impact);
+* The **duration** of the effect;
+* It affects at a time or has an effect **cyclically**;
+* If the effect is cyclic, then it is necessary to be able to set the **cycle interval**.
+
+**Now let's add the idea that each "carrier" and each "effect" can spawn child "carriers" and "effects" upon completion**. This is a very important point in order to be able to configure complex transport and effect chains. Let's look at the idea in more detail.
+
+![Carrier/Effect](media/01_carrier-effect.png)
+
+The picture above shows an example of a **chain of carriers and buffs** (or **BuffSystemChain** for short). the picture shows an example of a simple chain: `Projectile -> Explosion -> Damage Effect`. 
+
+In this case, the chain can be much more complicated, where each "carrier" can carry several child carriers, each of which, in turn, can carry several effects. An example of such a system is shown in the following picture:
+
+![Complicated chain buff system](media/02_chain-array.png)
+
+A complicated chain of the buff system - it can be set simply by a set of parameters, and for the visual design of the individual elements of the "carrier" and "effect" will be the class objects that spawn into the world at the moment the parent carrier is activated.
+
+The idea seems to be clear. Let's do it.
+
+![just do it](media/03_just-do-it-meme.jpg)
 
 # Implementation
 
