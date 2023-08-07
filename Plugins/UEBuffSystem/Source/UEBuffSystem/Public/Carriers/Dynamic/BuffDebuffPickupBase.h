@@ -35,5 +35,8 @@ public:
 	/** A virtual method called on "BeginOverlap". To change the basic logic, you need to override it. */
 	UFUNCTION()
 	virtual void OnActivateCollisionComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-	
+
+private:
+	UPROPERTY()
+	TArray<AActor *> AffectedActors;
 };

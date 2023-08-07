@@ -39,6 +39,13 @@ void ABuffDebuffPickupBase::Init(UBuffDebuffCarrierParamsBase* InCarrierParams)
 			}
 		}
 	}
+
+	TArray<AActor *> OverlappingActors;
+	CollisionComp->GetOverlappingActors(OverlappingActors);
+	for (auto OverlappingActor : OverlappingActors)
+	{
+		OnActivateCollisionComponentBeginOverlap(nullptr, OverlappingActor, nullptr, OverlappingActors.IndexOfByKey(OverlappingActor), false, FHitResult {});
+	}
 }
 
 void ABuffDebuffPickupBase::OnActivateCollisionComponentBeginOverlap(
@@ -52,22 +59,27 @@ void ABuffDebuffPickupBase::OnActivateCollisionComponentBeginOverlap(
 	// If Overlapping actor valid AND the actor implements the "Buff Receiver" interface
 	if ((OtherActor != nullptr) && (OtherActor->GetClass()->ImplementsInterface(UBuffReceiver::StaticClass())))
 	{
-		// Spawn child carriers (if is not empty)
-		SpawnChildCarriers();
-
-		// Apply effects on hitting actor
-		TArray<AActor *> Targets;
-		Targets.Add(OtherActor);
-		ApplyEffects(Targets);
-		
-		// After the effect spawns - the carrier object is no longer needed and can be destroyed
-		if (CarrierParams != nullptr)
+		if ((CarrierParams != nullptr) && (!AffectedActors.Contains(OtherActor)))
 		{
-			if (auto PickupParams = Cast<UBuffDebuffPickupParams>(CarrierParams))
+			// Spawn child carriers (if is not empty)
+			SpawnChildCarriers();
+
+			// Apply effects on hitting actor
+			TArray<AActor *> Targets;
+			Targets.Add(OtherActor);
+			ApplyEffects(Targets);
+
+			AffectedActors.Add(OtherActor);
+			
+			// After the effect spawns - the carrier object is no longer needed and can be destroyed
+			if (CarrierParams != nullptr)
 			{
-				if (PickupParams->bIsDestroyAfterOverlap)
+				if (auto PickupParams = Cast<UBuffDebuffPickupParams>(CarrierParams))
 				{
-					Destroy();
+					if (PickupParams->bIsDestroyAfterOverlap)
+					{
+						Destroy();
+					}
 				}
 			}
 		}
