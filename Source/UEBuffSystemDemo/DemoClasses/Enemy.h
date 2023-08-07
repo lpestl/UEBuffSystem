@@ -45,8 +45,9 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
-	/** IBuffReceiver interface start*/
-	virtual void BuffImpact_Implementation(UClass* InEffectClass) override;
+	/** IBuffReceiver interface start*/	
+	virtual void AddHealth_Implementation(float AddHealthValue) override;
+	virtual void AddSpeed_Implementation(float AddSpeedValue) override;	
 	/** IBuffReceiver interface end*/
 	
 	// Called every frame
@@ -57,15 +58,6 @@ public:
 
 	/** Called for side to side input */
 	void MoveRight(float Value);
-
-	/** Called for take damage */
-	void TakeDamage(float DamageValue);
-
-	/** Called for healing */
-	void TakeHeal(float HealValue);
-
-	/** Called for change speed */
-	void AddSpeed(float InAddingValue);
 
 	UFUNCTION(BlueprintCallable)
 	float GetCurrentHealth() const;

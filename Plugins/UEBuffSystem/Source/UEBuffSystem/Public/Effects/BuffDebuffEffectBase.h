@@ -24,6 +24,18 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Effect")
 	FName Name;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Effect Settings")
+	bool bIsCancelableEffect = false;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Effect Settings")
+	float LifeTime = 0.f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Effect Settings")
+	bool bIsCycle = false;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Effect Settings")
+	float CycleTime = 0.f;	
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Instanced, Category="Next generation")
 	TArray<UBuffDebuffCarrierParamsBase *> ChildCarriers;
 
@@ -40,7 +52,32 @@ class UEBUFFSYSTEM_API UBuffDebuffEffectBase : public UActorComponent
 	GENERATED_BODY()
 
 public:
-	UBuffDebuffEffectBase();
+	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	
+	virtual void Init(UBuffDebuffEffectParamsBase *InParams);
 
+	virtual void Impact() {};
+	virtual void CancelImpact() {};
+	
+	void DestroyEffect();
+
+	UFUNCTION(BlueprintCallable)
+	void SpawnChildCarriers();
+	
+	UFUNCTION(BlueprintCallable)
+	void ApplyEffects(const TArray<AActor *>& InTargets);
+	
+	UFUNCTION(BlueprintCallable)
 	virtual FName GetBuffEffectName();
+
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Effect params")
+	UBuffDebuffEffectParamsBase *EffectParams;
+	
+	UPROPERTY()
+	FTimerHandle EffectCycleTimerHandle;
+
+	UPROPERTY()
+	FTimerHandle LifeTimerHandle;
 };

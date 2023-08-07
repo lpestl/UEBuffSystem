@@ -61,13 +61,20 @@ void ABuffDebuffCarrierBase::ApplyEffects(const TArray<AActor*>& InTargets)
 		UWorld* const World = GetWorld();
 		if (World != nullptr)
 		{
-			for (auto&& InTarget : InTargets)
+			for (AActor* InTarget : InTargets)
 			{
 				if (InTarget->GetClass()->ImplementsInterface(UBuffReceiver::StaticClass()))
 				{
 					for (auto&& SpawningEffectParams : CarrierParams->ChildEffects)
 					{
-						InTarget->AddComponent(SpawningEffectParams->Name, false, FTransform {}, SpawningEffectParams->EffectClass);
+						if (auto EffectComponent = InTarget->AddComponentByClass(SpawningEffectParams->EffectClass, false, FTransform {}, true))
+						{							
+							if (auto Effect = Cast<UBuffDebuffEffectBase>(EffectComponent))
+							{
+								Effect->Init(SpawningEffectParams);
+							}
+							InTarget->RegisterAllComponents();
+						}
 					}
 				}
 			}

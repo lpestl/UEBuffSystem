@@ -90,23 +90,41 @@ void AEnemy::BeginPlay()
 	Super::BeginPlay();
 }
 
-void AEnemy::BuffImpact_Implementation(UClass* InEffectClass)
+void AEnemy::AddHealth_Implementation(float AddHealthValue)
 {
-	IBuffReceiver::BuffImpact_Implementation(InEffectClass);
+	IBuffReceiver::AddHealth_Implementation(AddHealthValue);
 
-	// if (const FGunsDataRow* GameBuffData = Cast<FGunsDataRow>(InBuffData))
-	// {
-	// 	if (GameBuffData->HealthImpactValue > 0)
-	// 	{
-	// 		TakeHeal(GameBuffData->HealthImpactValue);
-	// 	}
-	// 	else
-	// 	{
-	// 		TakeDamage(FMath::Abs(GameBuffData->HealthImpactValue));
-	// 	}
-	//
-	// 	AddSpeed(GameBuffData->SpeedImpactValue);
-	// }
+	CurrentHealth += AddHealthValue;
+	
+	if (OnHealthChanged.IsBound())
+	{
+		OnHealthChanged.Broadcast();
+	}
+
+	// Destroy an actor when health runs out
+	if (CurrentHealth <= 0.f)
+	{
+		Destroy();
+	}
+}
+
+void AEnemy::AddSpeed_Implementation(float AddSpeedValue)
+{
+	IBuffReceiver::AddSpeed_Implementation(AddSpeedValue);
+
+	if (GetCharacterMovement()->MaxWalkSpeed + AddSpeedValue >= 0.f)
+	{
+		GetCharacterMovement()->MaxWalkSpeed += AddSpeedValue;
+	}
+	else
+	{
+		GetCharacterMovement()->MaxWalkSpeed = 0.f;
+	}
+
+	if (OnSpeedChanged.IsBound())
+	{
+		OnSpeedChanged.Broadcast();
+	}
 }
 
 // Called every frame
@@ -181,48 +199,6 @@ void AEnemy::MoveRight(float Value)
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 		// add movement in that direction
 		AddMovementInput(Direction, Value);
-	}
-}
-
-void AEnemy::TakeDamage(float DamageValue)
-{
-	CurrentHealth -= DamageValue;
-
-	if (OnHealthChanged.IsBound())
-	{
-		OnHealthChanged.Broadcast();
-	}
-	
-	if (CurrentHealth <= 0.f)
-	{
-		Destroy();
-	}
-}
-
-void AEnemy::TakeHeal(float HealValue)
-{
-	CurrentHealth += HealValue;
-
-	if (OnHealthChanged.IsBound())
-	{
-		OnHealthChanged.Broadcast();
-	}
-}
-
-void AEnemy::AddSpeed(float InAddingValue)
-{
-	if (GetCharacterMovement()->MaxWalkSpeed + InAddingValue >= 0)
-	{
-		GetCharacterMovement()->MaxWalkSpeed += InAddingValue;
-	}
-	else
-	{
-		GetCharacterMovement()->MaxWalkSpeed = 0;
-	}
-
-	if (OnSpeedChanged.IsBound())
-	{
-		OnSpeedChanged.Broadcast();
 	}
 }
 
