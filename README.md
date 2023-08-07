@@ -17,7 +17,7 @@ Simple system of Buffs (effects that affect game entities). The system allows yo
 
 # Technical task
 
-The original text of the technical task (It is desirable to implement on UE4):
+The original text of the technical task (```It is desirable to implement on UE4```):
 
 ```
 Тестовое задание
@@ -183,22 +183,187 @@ class AUEBuffSystemDemoCharacter : public ACharacter, public IBuffReceiver
 
 > IMPORTANT: Only those game entities that implement this interface will be affected by Buffs/Debuffs
 
-
-
 ## Step 2: Base classes
 
-For simplicity and speed of implementation, let's create base classes that will be implemented as Actors. Let the base class hierarchy look something like this:
+For simplicity and speed of implementation, let's create base classes that will be implemented as `Actors` for `Carrier` and `ActorComponent` for `Effect`. Let the base class hierarchy look something like this:
 
 ```
-* BuffDebuffCarrierBase (AActor)
+* Carriers
+    * BuffDebuffCarrierBase (AActor)
 
-* BuffDebuffEffectBase (AActor)
+* Effects
+    * BuffDebuffEffectBase (UActorComponent)
 ```
 
 `BuffDebuffCarrierBase` - an entity in the world that will carry the buff or debuff effect. It can be a pickup in the world, or as indicated in the task, it can be a projectile bullet.
 
 `BuffDebuffEffectBase` - an abstract entity, in the life cycle of which the impact on characteristics will be carried out. When the "death" of the object - the effect will be removed.
 
+For simplicity, we divide carriers into two types:
+* `BuffDebuffPickupBase` - the carrier will be activated from the events of `OnBeginOverlap`;
+* `BuffDebuffProjectileBase` - will be activated from a `OnHit`.
+
+For simplicity, we divide the effects into two types:
+* `BuffDebuffHealth` - the effect will affect health;
+* `BuffDebuffSpeed` - the effect will affect the speed.
+
+Now the base class hierarchy looks like this:
+
+```
+* Carriers
+    * BuffDebuffCarrierBase (AActor)
+        * BuffDebuffPickupBase (BuffDebuffCarrierBase)
+        * BuffDebuffProjectileBase (BuffDebuffCarrierBase)
+
+* Effects
+    * BuffDebuffEffectBase (UActorComponent)
+        * BuffDebuffHealth (BuffDebuffEffectBase)
+        * BuffDebuffSpeed (BuffDebuffEffectBase)
+```
+
+When the logical entities "Carrier" and "Effect" are created, it is worth thinking about simplifying the setting of their parameters.
+
 ## Step 3: Parameters and parameter chains 
 
+The logical entity "CarrierBase", as described in the [Idea](#idea) section, should be set with the following parameters:
+
+```C++
+/*
+ * Base Carrier Params class
+ */
+UCLASS(BlueprintType, Abstract)
+class UEBUFFSYSTEM_API UBuffDebuffCarrierParamsBase : public UObject
+{
+	GENERATED_BODY()
+	
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Spawning class")
+	TSubclassOf<ABuffDebuffCarrierBase> CarrierClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Settings")
+	float CollisionRadius;	
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Instanced, Category="Next generation")
+	TArray<UBuffDebuffCarrierParamsBase *> ChildCarriers;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Instanced, Category="Next generation")
+	TArray<UBuffDebuffEffectParamsBase *> ChildEffects;
+};
+```
+
+Where:
+* `CarrierClass` - a Carrier class with a customized visual part that will be spawned;
+* `CollisionRadius` - Activation radius;
+* `ChildCarriers`, `ChildEffects` - parameters for the spawn of child carriers and effects when activated.
+
+Now let's expand the list of parameters for the Projecttile and Pickup classes as follows:
+
+```C++
+UCLASS(BlueprintType, EditInlineNew)
+class UEBUFFSYSTEM_API UBuffDebuffProjectileParams : public UBuffDebuffCarrierParamsBase
+{
+	GENERATED_BODY()
+
+public:	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Projectile Settings")
+	float Speed = 3000.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Projectile Settings")
+	float LifeTime = 3.f;
+};
+```
+
+```C++
+UCLASS(BlueprintType, EditInlineNew)
+class UEBUFFSYSTEM_API UBuffDebuffPickupParams : public UBuffDebuffCarrierParamsBase
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Pickup Settings")
+	bool bIsDestroyAfterOverlap = true;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Pickup Settings")
+	float LifeTime = 0.f;
+};
+```
+
+Effects have a slightly more complex parameter structure, for customization flexibility:
+
+```C++
+UCLASS(BlueprintType, Abstract)
+class UEBUFFSYSTEM_API UBuffDebuffEffectParamsBase : public UObject
+{
+	GENERATED_BODY()
+	
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Spawning class")
+	TSubclassOf<UBuffDebuffEffectBase> EffectClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Effect")
+	FName Name;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Effect Settings")
+	bool bIsCancelableEffect = false;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Effect Settings")
+	float LifeTime = 0.f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Effect Settings")
+	bool bIsCycle = false;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Effect Settings")
+	float CycleTime = 0.f;	
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Instanced, Category="Next generation")
+	TArray<UBuffDebuffCarrierParamsBase *> ChildCarriers;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Instanced, Category="Next generation")
+	TArray<UBuffDebuffEffectParamsBase *> ChildEffects;
+};
+```
+
+Accordingly, `BuffDebuffHealth` and `BuffDebuffSpeed` have been extended as follows:
+
+```C++
+UCLASS(BlueprintType, EditInlineNew)
+class UEBUFFSYSTEM_API UBuffDebuffHealthParams : public UBuffDebuffEffectParamsBase
+{
+	GENERATED_BODY()
+
+public:	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Health Effect Settings")
+	float AddHealth = -100.f;	
+};
+```
+
+```C++
+UCLASS(BlueprintType, EditInlineNew)
+class UEBUFFSYSTEM_API UBuffDebuffSpeedParams : public UBuffDebuffEffectParamsBase
+{
+	GENERATED_BODY()
+
+public:	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Speed Effect Settings")
+	float AddSpeed = -200.f;	
+};
+```
+
+**Total:** To set a chain of parameters for carriers and effects, it is enough for us to have:
+* a set of classes, for each carrier, that implement its visual part;
+* entry point for parameters when spawning the first parent carrier.
+
+Set of classes, for each carrier, are implemented in the demo project in the form of blueprints:
+
+![Carriers blueprints](media/04_carriers-blueprints.png)
+
+The entry point for passing/binding parameters is a DataTable that contains DataAssets with parameters.
+> The DataAsset is configured for the convenience of GameDesigners so that the parameter objects are instantiated objects and filled directly in the DataAsset itself.
+
+Here is an example of a completed and configured Data Asset for the parent transporter - grenade:
+
+![Grenade params](media/05_grenade-params.png)
+
 # How to use
+
+// TODO:
