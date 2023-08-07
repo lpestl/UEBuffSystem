@@ -45,10 +45,10 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
-	/** IBuffReceiver interface start*/	
+	/** IBuffReceiver interface start */	
 	virtual void AddHealth_Implementation(float AddHealthValue) override;
 	virtual void AddSpeed_Implementation(float AddSpeedValue) override;	
-	/** IBuffReceiver interface end*/
+	/** IBuffReceiver interface end */
 	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

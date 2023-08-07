@@ -88,7 +88,102 @@ In the main game module, let's create a simple enemy class. We will use it to te
 * character's health;
 * character color.
 
-This is enough to demonstrate.
+```C++
+USTRUCT(BlueprintType)
+struct FEnemyCharacteristics
+{
+	GENERATED_BODY()
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Enemy Characteristics")
+	float BaseMovementSpeed = 600.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Enemy Characteristics")
+	float Health = 1000.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Enemy Characteristics")
+	FLinearColor Color = FLinearColor::Red;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Enemy Characteristics")
+	float ScaleMultiplier = 1.f;
+};
+```
+
+This is enough to demonstrate. 
+
+Randomize these parameters for spawning enemies and teach them how to walk. As stated in the terms of reference, let them go only forward, and when they meet an obstacle, let them change direction to random.
+
+We will make our character indestructible for the demonstration, but we will give him the opportunity to change guns.
+
+```C++
+	/** Fires a projectile. */
+	void OnFire();
+
+	void OnChangeGun1() { OnChangeGun(EGunType::INSTANT_LIFE_REDUCTION); };
+	void OnChangeGun2() { OnChangeGun(EGunType::GRADUAL_DECLINE_LIFE); };
+	void OnChangeGun3() { OnChangeGun(EGunType::SPEED_REDUCTION); };
+	void OnChangeGun4() { OnChangeGun(EGunType::GRENADE); };
+	void OnChangeGun5() { OnChangeGun(EGunType::ELECTRO_GRENADE); };
+	void OnChangeGun(EGunType InGunType);
+```
+
+Let there be five types of weapons to showcase the various "buff carriers". You can change weapons to the following keys:
+* key `1` - shoots regular bullets that deal damage once;
+* key `2` - shoots "poisonous" bullets, which for some time reduce the lives of enemies;
+* key `3`- let there be bullets that do little damage and slow down the enemy;
+* key `4` - let there be grenades that, after touching the enemy, cause an explosion, which causes damage to everyone within its radius of action;
+* key `5` - let there be an "electric grenade", which, after touching, explodes and leaves behind an electrified area for a while, entering which the enemy receives periodic damage.
+
+In order for our enemies and our character to be subject to buffs, while not applying buffs to any game entities, we need to implement an interface `Plugins/UEBuffSystem/Source/UEBuffSystem/Public/Interfaces/IBuffReceiver.h` in the enemy class and character class:
+
+```C++
+class UEBUFFSYSTEM_API IBuffReceiver
+{
+	GENERATED_BODY()
+
+public:	
+	/** Called for change health */
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	void AddHealth(float AddHealthValue);
+	virtual void AddHealth_Implementation(float AddHealthValue) {};
+	
+	/** Called for change speed */
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	void AddSpeed(float AddSpeedValue);
+	virtual void AddSpeed_Implementation(float AddSpeedValue) {};
+};
+```
+
+Approximately it will look like this:
+
+```C++
+UCLASS(config=Game)
+class UEBUFFSYSTEMDEMO_API AEnemy : public ACharacter, public IBuffReceiver
+{
+    // ...
+    /** IBuffReceiver interface start */	
+	virtual void AddHealth_Implementation(float AddHealthValue) override;
+	virtual void AddSpeed_Implementation(float AddSpeedValue) override;	
+	/** IBuffReceiver interface end */
+    // ...
+}
+```
+
+```C++
+UCLASS(config=Game)
+class AUEBuffSystemDemoCharacter : public ACharacter, public IBuffReceiver
+{
+    // ...
+    /** IBuffReceiver interface start */	
+	virtual void AddHealth_Implementation(float AddHealthValue) override;
+	virtual void AddSpeed_Implementation(float AddSpeedValue) override;	
+	/** IBuffReceiver interface end */
+    // ...
+}
+```
+
+> IMPORTANT: Only those game entities that implement this interface will be affected by Buffs/Debuffs
+
+
 
 ## Step 2: Base classes
 
