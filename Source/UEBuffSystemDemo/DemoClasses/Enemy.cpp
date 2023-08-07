@@ -6,6 +6,7 @@
 #include "DrawDebugHelpers.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "HelpUI/EffectPointsView.h"
 
 
 // Sets default values
@@ -95,12 +96,20 @@ void AEnemy::AddHealth_Implementation(float AddHealthValue)
 	IBuffReceiver::AddHealth_Implementation(AddHealthValue);
 
 	CurrentHealth += AddHealthValue;
-	
+		
 	if (OnHealthChanged.IsBound())
 	{
 		OnHealthChanged.Broadcast();
 	}
 
+	if (GetWorld() != nullptr)
+	{
+		if (auto PointsTextActor = GetWorld()->SpawnActor<AEffectPointsView>(GetActorLocation(), GetActorRotation()))
+		{
+			PointsTextActor->SetText(FString::Printf(TEXT("%d HP"), (int32)AddHealthValue));
+		}
+	}
+	
 	// Destroy an actor when health runs out
 	if (CurrentHealth <= 0.f)
 	{
