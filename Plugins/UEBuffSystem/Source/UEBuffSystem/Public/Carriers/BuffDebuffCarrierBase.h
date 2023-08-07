@@ -7,24 +7,47 @@
 #include "BuffDebuffCarrierBase.generated.h"
 
 class UBuffDebuffEffectBase;
+class ABuffDebuffCarrierBase;
+class UBuffDebuffEffectParamsBase;
+
+/*
+ * Base Carrier Params class
+ */
+UCLASS(BlueprintType, Abstract)
+class UEBUFFSYSTEM_API UBuffDebuffCarrierParamsBase : public UObject
+{
+	GENERATED_BODY()
+	
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Spawning class")
+	TSubclassOf<ABuffDebuffCarrierBase> CarrierClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Instanced, Category="Next generation")
+	TArray<UBuffDebuffCarrierParamsBase *> ChildCarriers;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Instanced, Category="Next generation")
+	TArray<UBuffDebuffEffectParamsBase *> ChildEffects;
+};
 
 /*
  * Base class for buff carrier
  */
-UCLASS(Abstract)
+UCLASS(BlueprintType, Abstract)
 class UEBUFFSYSTEM_API ABuffDebuffCarrierBase : public AActor
 {
 	GENERATED_BODY()
 
-protected:
-	void SpawnChildCarriers();
+public:
+	UFUNCTION(BlueprintCallable)
+	virtual void Init(UBuffDebuffCarrierParamsBase *InCarrierParams);
 
+	UFUNCTION(BlueprintCallable)
+	void SpawnChildCarriers();
+	
+	UFUNCTION(BlueprintCallable)
 	void ApplyEffects(const TArray<AActor *>& InTargets);
 	
 protected:
-	UPROPERTY(EditDefaultsOnly, Instanced, NoClear, Category="Carrier Children")
-	TArray<ABuffDebuffCarrierBase *> SpawningCarriers;
-
-	UPROPERTY(EditDefaultsOnly, Instanced, NoClear, Category="Carrier Children")
-	TArray<UBuffDebuffEffectBase *> SpawningEffects;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Instanced, Category="Carrier chain")
+	UBuffDebuffCarrierParamsBase *CarrierParams = nullptr;
 };

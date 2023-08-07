@@ -3,21 +3,33 @@
 #include "Effects/BuffDebuffEffectBase.h"
 #include "Interfaces/IBuffReceiver.h"
 
+void ABuffDebuffCarrierBase::Init(UBuffDebuffCarrierParamsBase *InCarrierParams)
+{
+	CarrierParams = InCarrierParams;
+}
+
 void ABuffDebuffCarrierBase::SpawnChildCarriers()
 {
-	UWorld* const World = GetWorld();
-	if (World != nullptr)
+	if (CarrierParams != nullptr)
 	{
-		for (auto&& SpawningCarrier : SpawningCarriers)
+		UWorld* const World = GetWorld();
+		if (World != nullptr)
 		{
-			// Set Spawn Collision Handling Override
-			FActorSpawnParameters ActorSpawnParams;
+			for (auto&& SpawningCarrierParams : CarrierParams->ChildCarriers)
+			{
+				// Set Spawn Collision Handling Override
+				FActorSpawnParameters ActorSpawnParams;
 
-			ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-			ActorSpawnParams.Owner = GetOwner();
-			ActorSpawnParams.Template = SpawningCarrier;
-			
-			auto ChildCarrier = World->SpawnActor<ABuffDebuffCarrierBase>(SpawningCarrier->GetClass(), GetActorLocation(), GetActorRotation(), ActorSpawnParams);
+				ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+				ActorSpawnParams.Owner = GetOwner();
+
+				// Spawn carrier actor
+				if (auto ChildCarrier = World->SpawnActor<ABuffDebuffCarrierBase>(SpawningCarrierParams->CarrierClass, GetActorLocation(), GetActorRotation(), ActorSpawnParams))
+				{
+					// Initialize 
+					ChildCarrier->Init(SpawningCarrierParams);
+				}
+			}
 		}
 	}
 }
@@ -31,9 +43,9 @@ void ABuffDebuffCarrierBase::ApplyEffects(const TArray<AActor*>& InTargets)
 		{
 			if (InTarget->GetClass()->ImplementsInterface(UBuffReceiver::StaticClass()))
 			{
-				for (auto&& SpawningEffect : SpawningEffects)
+				for (auto&& SpawningEffectParams : CarrierParams->ChildEffects)
 				{
-					InTarget->AddComponent(SpawningEffect->GetBuffEffectName(), false, FTransform {}, SpawningEffect);
+					InTarget->AddComponent(SpawningEffectParams->Name, false, FTransform {}, SpawningEffectParams->EffectClass);
 				}
 			}
 		}
