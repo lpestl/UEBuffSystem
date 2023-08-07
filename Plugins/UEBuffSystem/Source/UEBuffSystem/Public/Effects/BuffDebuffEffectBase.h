@@ -3,47 +3,81 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Carriers/BuffDebuffCarrierBase.h"
-#include "GameFramework/Actor.h"
 #include "BuffDebuffEffectBase.generated.h"
 
-UCLASS()
-class UEBUFFSYSTEM_API ABuffDebuffEffectBase : public AActor
+class UBuffDebuffCarrierParamsBase;
+class UBuffDebuffEffectBase;
+class USphereComponent;
+
+/*
+ *
+ */
+UCLASS(BlueprintType, Abstract)
+class UEBUFFSYSTEM_API UBuffDebuffEffectParamsBase : public UObject
+{
+	GENERATED_BODY()
+	
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Spawning class")
+	TSubclassOf<UBuffDebuffEffectBase> EffectClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Effect")
+	FName Name;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Effect Settings")
+	bool bIsCancelableEffect = false;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Effect Settings")
+	float LifeTime = 0.f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Effect Settings")
+	bool bIsCycle = false;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Effect Settings")
+	float CycleTime = 0.f;	
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Instanced, Category="Next generation")
+	TArray<UBuffDebuffCarrierParamsBase *> ChildCarriers;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Instanced, Category="Next generation")
+	TArray<UBuffDebuffEffectParamsBase *> ChildEffects;
+};
+
+/*
+ *
+ */
+UCLASS(Abstract)
+class UEBUFFSYSTEM_API UBuffDebuffEffectBase : public UActorComponent
 {
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this actor's properties
-	ABuffDebuffEffectBase();
-
-protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;	
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	
+	virtual void Init(UBuffDebuffEffectParamsBase *InParams);
 
-	UFUNCTION(BlueprintNativeEvent)
-	void ApplyEffect();
-	virtual void ApplyEffect_Implementation();
+	virtual void Impact() {};
+	virtual void CancelImpact() {};
+	
+	void DestroyEffect();
 
-	UFUNCTION(BlueprintNativeEvent)
-	void CancelEffect();
-	virtual void CancelEffect_Implementation();
-public:
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	UFUNCTION(BlueprintCallable)
+	void SpawnChildCarriers();
 	
-	virtual void Init(const FBuffDataTableRow& InBuffData);
+	UFUNCTION(BlueprintCallable)
+	void ApplyEffects(const TArray<AActor *>& InTargets);
 	
-	/** Returns CollisionComp subobject **/
-	USphereComponent* GetCollisionComp() const { return CollisionComp; }
-	
+	UFUNCTION(BlueprintCallable)
+	virtual FName GetBuffEffectName();
+
 protected:
-	/** Sphere collision component */
-	UPROPERTY(VisibleDefaultsOnly, Category=Projectile)
-	USphereComponent* CollisionComp;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FBuffDataTableRow BuffData;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Effect params")
+	UBuffDebuffEffectParamsBase *EffectParams;
 	
-	FTimerHandle CycleTimerHandle;
+	UPROPERTY()
+	FTimerHandle EffectCycleTimerHandle;
+
+	UPROPERTY()
+	FTimerHandle LifeTimerHandle;
 };

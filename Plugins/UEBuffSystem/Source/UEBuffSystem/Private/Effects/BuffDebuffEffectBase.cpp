@@ -3,68 +3,129 @@
 
 #include "Effects/BuffDebuffEffectBase.h"
 
+#include "Carriers/BuffDebuffCarrierBase.h"
+#include "Interfaces/IBuffReceiver.h"
 
-// Sets default values
-ABuffDebuffEffectBase::ABuffDebuffEffectBase()
+void UBuffDebuffEffectBase::BeginPlay()
 {
-	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	Super::BeginPlay();
 	
-	// Use a sphere as a simple collision representation
-	CollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComp"));
-	CollisionComp->InitSphereRadius(5.0f);
-	
-	// Set as root component
-	RootComponent = CollisionComp;
-}
-
-// Called when the game starts or when spawned
-void ABuffDebuffEffectBase::BeginPlay()
-{
-	Super::BeginPlay();	
-}
-
-void ABuffDebuffEffectBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
-{
-	Super::EndPlay(EndPlayReason);
-
 	UWorld* const World = GetWorld();
-	if (World != nullptr)
+	if ((World != nullptr) && (EffectParams != nullptr))
 	{
-		World->GetTimerManager().ClearTimer(CycleTimerHandle);
-	}
-	CancelEffect();
-}
-
-void ABuffDebuffEffectBase::ApplyEffect_Implementation()
-{
-	// Implement in child class
-}
-
-void ABuffDebuffEffectBase::CancelEffect_Implementation()
-{
-	// Implement in child class
-}
-
-// Called every frame
-void ABuffDebuffEffectBase::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-}
-
-void ABuffDebuffEffectBase::Init(const FBuffDataTableRow& InBuffData)
-{
-	BuffData = InBuffData;
-	
-	SetLifeSpan(BuffData.LifeTimeEffect);
-
-	if (BuffData.ImpactCycleTime > 0.f)
-	{
-		UWorld* const World = GetWorld();
-		if (World != nullptr)
+		World->GetTimerManager().SetTimerForNextTick(this, &UBuffDebuffEffectBase::Impact);
+		
+		if (EffectParams->bIsCycle)
 		{
-			World->GetTimerManager().SetTimer(CycleTimerHandle, this, &ABuffDebuffEffectBase::ApplyEffect, BuffData.ImpactCycleTime, true);
+			World->GetTimerManager().SetTimer(EffectCycleTimerHandle, this, &UBuffDebuffEffectBase::Impact, EffectParams->CycleTime, true);
+		}
+
+		if (EffectParams->LifeTime > 0.f)
+		{
+			World->GetTimerManager().SetTimer(LifeTimerHandle, this, &UBuffDebuffEffectBase::DestroyEffect, EffectParams->LifeTime, false);
 		}
 	}
 }
 
+void UBuffDebuffEffectBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	UWorld* const World = GetWorld();
+	if ((World != nullptr) && (EffectParams != nullptr))
+	{
+		if (EffectParams->bIsCancelableEffect)
+		{
+			CancelImpact();
+		}
+		
+		if (World->GetTimerManager().TimerExists(EffectCycleTimerHandle))
+		{
+			World->GetTimerManager().ClearTimer(EffectCycleTimerHandle);
+		}
+
+		if (World->GetTimerManager().TimerExists(LifeTimerHandle))
+		{
+			World->GetTimerManager().ClearTimer(LifeTimerHandle);
+		}
+	}
+
+	SpawnChildCarriers();
+
+	if (GetOwner() != nullptr)
+	{
+		TArray<AActor *> Targets;
+		Targets.Add(GetOwner());
+		ApplyEffects(Targets);
+	}
+	
+	Super::EndPlay(EndPlayReason);
+}
+
+void UBuffDebuffEffectBase::Init(UBuffDebuffEffectParamsBase* InParams)
+{
+	EffectParams = InParams;
+}
+
+void UBuffDebuffEffectBase::DestroyEffect()
+{
+	DestroyComponent();
+}
+
+void UBuffDebuffEffectBase::SpawnChildCarriers()
+{
+	if (EffectParams != nullptr)
+	{
+		UWorld* const World = GetWorld();
+		if (World != nullptr)
+		{
+			for (auto&& SpawningCarrierParams : EffectParams->ChildCarriers)
+			{
+				// Set Spawn Collision Handling Override
+				FActorSpawnParameters ActorSpawnParams;
+
+				ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+				ActorSpawnParams.Owner = GetOwner();
+
+				if (GetOwner() != nullptr)
+				{
+					// Spawn carrier actor
+					if (auto ChildCarrier = World->SpawnActor<ABuffDebuffCarrierBase>(SpawningCarrierParams->CarrierClass, GetOwner()->GetActorLocation(), GetOwner()->GetActorRotation(), ActorSpawnParams))
+					{
+						// Initialize 
+						ChildCarrier->Init(SpawningCarrierParams);
+					}
+				}
+			}
+		}
+	}
+}
+
+void UBuffDebuffEffectBase::ApplyEffects(const TArray<AActor*>& InTargets)
+{
+	if (EffectParams != nullptr)
+	{
+		UWorld* const World = GetWorld();
+		if (World != nullptr)
+		{
+			for (auto&& InTarget : InTargets)
+			{
+				if (InTarget->GetClass()->ImplementsInterface(UBuffReceiver::StaticClass()))
+				{
+					for (auto&& SpawningEffectParams : EffectParams->ChildEffects)
+					{
+						InTarget->AddComponent(SpawningEffectParams->Name, false, FTransform {}, SpawningEffectParams->EffectClass);
+					}
+				}
+			}
+		}
+	}
+}
+
+FName UBuffDebuffEffectBase::GetBuffEffectName()
+{
+	if (EffectParams != nullptr)
+	{
+		return EffectParams->Name;
+	}
+	
+	return FName(TEXT("Buff/Debuff Base"));
+}

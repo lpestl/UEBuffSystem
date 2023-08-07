@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Engine/DataTable.h"
 #include "GameFramework/Character.h"
+#include "Interfaces/IBuffReceiver.h"
 #include "UEBuffSystemDemoCharacter.generated.h"
 
 class UInputComponent;
@@ -25,7 +26,7 @@ enum class EGunType : uint8 {
 };
 
 UCLASS(config=Game)
-class AUEBuffSystemDemoCharacter : public ACharacter
+class AUEBuffSystemDemoCharacter : public ACharacter, public IBuffReceiver
 {
 	GENERATED_BODY()
 
@@ -82,7 +83,7 @@ public:
 
 	/** Projectile class to spawn */
 	UPROPERTY(EditDefaultsOnly, Category=Projectile)
-	TSubclassOf<class AUEBuffSystemDemoProjectile> ProjectileClass;
+	TSubclassOf<class ABuffDebuffProjectileBase> ProjectileClass;
 
 	/** Sound to play each time we fire */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Gameplay)

@@ -20,14 +20,14 @@ class UEBUFFSYSTEM_API IBuffReceiver
 {
 	GENERATED_BODY()
 
-public:
+public:	
+	/** Called for change health */
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	void ImpactHealth(float Value);
-	virtual void ImpactHealth_Implementation(float Value) {};
-
+	void AddHealth(float AddHealthValue);
+	virtual void AddHealth_Implementation(float AddHealthValue) {};
+	
+	/** Called for change speed */
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	void ImpactSpeed(float Value);
-	virtual void ImpactSpeed_Implementation(float Value) {};
-
-	// TODO: Maybe something else
+	void AddSpeed(float AddSpeedValue);
+	virtual void AddSpeed_Implementation(float AddSpeedValue) {};
 };

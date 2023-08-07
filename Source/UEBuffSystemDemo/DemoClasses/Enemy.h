@@ -20,7 +20,7 @@ struct FEnemyCharacteristics
 	float BaseMovementSpeed = 600.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Enemy Characteristics")
-	float Health = 100.f;
+	float Health = 1000.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Enemy Characteristics")
 	FLinearColor Color = FLinearColor::Red;
@@ -45,9 +45,9 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
-	/** IBuffReceiver interface start*/
-	virtual void ImpactHealth_Implementation(float Value) override;
-	virtual void ImpactSpeed_Implementation(float Value) override;	
+	/** IBuffReceiver interface start*/	
+	virtual void AddHealth_Implementation(float AddHealthValue) override;
+	virtual void AddSpeed_Implementation(float AddSpeedValue) override;	
 	/** IBuffReceiver interface end*/
 	
 	// Called every frame
@@ -58,15 +58,6 @@ public:
 
 	/** Called for side to side input */
 	void MoveRight(float Value);
-
-	/** Called for take damage */
-	void TakeDamage(float DamageValue);
-
-	/** Called for healing */
-	void TakeHeal(float HealValue);
-
-	/** Called for change speed */
-	void AddSpeed(float InAddingValue);
 
 	UFUNCTION(BlueprintCallable)
 	float GetCurrentHealth() const;
@@ -85,11 +76,23 @@ public:
 	
 	UPROPERTY(BlueprintAssignable, Category = "Enemy Characteristics")
 	FOnEnemyInitialized OnEnemyInitialized;
+	
 private:
 	UPROPERTY(meta=(AllowPrivateAccess="true"), EditAnywhere, BlueprintReadWrite, Category="Enemy Characteristics")
-	FEnemyCharacteristics InitCharacteristic;
+	FEnemyCharacteristics CurrentCharacteristics;
 
 	UPROPERTY(meta=(AllowPrivateAccess="true"), VisibleAnywhere, BlueprintReadOnly, Category="Enemy Characteristics")
-	float CurrentHealth;
+	float CurrentHealth = 100.f;
+	
+	UPROPERTY(meta=(AllowPrivateAccess="true"), EditAnywhere, BlueprintReadWrite, Category="Enemy Characteristics")
+	bool bIsRandomCharacteristics = false;
 
+	UPROPERTY(meta=(AllowPrivateAccess="true"), EditAnywhere, BlueprintReadWrite, Category="Enemy Characteristics")
+	TArray<FLinearColor> AllowedColors;
+
+	UPROPERTY(meta=(AllowPrivateAccess="true"), EditAnywhere, BlueprintReadWrite, Category="Enemy Characteristics")
+	TArray<float> AllowedSpeed;
+
+	UPROPERTY(meta=(AllowPrivateAccess="true"), EditAnywhere, BlueprintReadWrite, Category="Enemy Characteristics")
+	TArray<float> AllowedHealth;
 };

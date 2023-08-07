@@ -3,8 +3,10 @@
 
 #include "Enemy.h"
 
+#include "DrawDebugHelpers.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "HelpUI/EffectPointsView.h"
 
 
 // Sets default values
@@ -30,20 +32,53 @@ AEnemy::AEnemy()
 
 void AEnemy::Init(FEnemyCharacteristics InCharacteristics)
 {
-	InitCharacteristic = InCharacteristics;
+	CurrentCharacteristics = InCharacteristics;
 
 	// Apply speed
 	if (IsValid(GetCharacterMovement()))
 	{
-		GetCharacterMovement()->MaxWalkSpeed = InitCharacteristic.BaseMovementSpeed;
+		GetCharacterMovement()->MaxWalkSpeed = CurrentCharacteristics.BaseMovementSpeed;
+
+		if ((bIsRandomCharacteristics) && (AllowedSpeed.Num() > 0))
+		{
+			int32 Index = FMath::RandRange(0, AllowedSpeed.Num() - 1);
+			GetCharacterMovement()->MaxWalkSpeed = AllowedSpeed[Index];
+		}
 	}
 
-	ChangeColor(InitCharacteristic.Color);
+	// Apply color
+	if (bIsRandomCharacteristics && AllowedColors.Num() > 0)
+	{
+		int32 Index = FMath::RandRange(0, AllowedColors.Num() - 1);
+		ChangeColor(AllowedColors[Index]);
+	}
+	else
+	{
+		ChangeColor(CurrentCharacteristics.Color);
+	}
 
-	CurrentHealth = InitCharacteristic.Health;
+	// Apply health
+	if (bIsRandomCharacteristics && AllowedHealth.Num() > 0)
+	{		
+		int32 Index = FMath::RandRange(0, AllowedHealth.Num() - 1);
+		CurrentHealth = AllowedHealth[Index];
+	}
+	else
+	{
+		CurrentHealth = CurrentCharacteristics.Health;
+	}
 
-	SetActorScale3D(GetActorScale3D() * InitCharacteristic.ScaleMultiplier);
-
+	// Apply scale
+	if (bIsRandomCharacteristics)
+	{
+		float ScaleMultiplier = FMath::FRandRange(0.6f, 1.5f);		
+		SetActorScale3D(GetActorScale3D() * ScaleMultiplier);
+	}
+	else
+	{
+		SetActorScale3D(GetActorScale3D() * CurrentCharacteristics.ScaleMultiplier);
+	}
+	
 	if (OnEnemyInitialized.IsBound())
 	{
 		OnEnemyInitialized.Broadcast();
@@ -53,30 +88,98 @@ void AEnemy::Init(FEnemyCharacteristics InCharacteristics)
 // Called when the game starts or when spawned
 void AEnemy::BeginPlay()
 {
-	Super::BeginPlay();	
+	Super::BeginPlay();
 }
 
-void AEnemy::ImpactHealth_Implementation(float Value)
+void AEnemy::AddHealth_Implementation(float AddHealthValue)
 {
-	if (Value > 0)
+	IBuffReceiver::AddHealth_Implementation(AddHealthValue);
+
+	CurrentHealth += AddHealthValue;
+		
+	if (OnHealthChanged.IsBound())
 	{
-		TakeHeal(Value);
+		OnHealthChanged.Broadcast();
+	}
+
+	if (GetWorld() != nullptr)
+	{
+		if (auto PointsTextActor = GetWorld()->SpawnActor<AEffectPointsView>(GetActorLocation(), GetActorRotation()))
+		{
+			PointsTextActor->SetText(FString::Printf(TEXT("%d HP"), (int32)AddHealthValue));
+		}
+	}
+	
+	// Destroy an actor when health runs out
+	if (CurrentHealth <= 0.f)
+	{
+		Destroy();
+	}
+}
+
+void AEnemy::AddSpeed_Implementation(float AddSpeedValue)
+{
+	IBuffReceiver::AddSpeed_Implementation(AddSpeedValue);
+
+	if (GetCharacterMovement()->MaxWalkSpeed + AddSpeedValue >= 0.f)
+	{
+		GetCharacterMovement()->MaxWalkSpeed += AddSpeedValue;
 	}
 	else
 	{
-		TakeDamage(FMath::Abs(Value));
+		GetCharacterMovement()->MaxWalkSpeed = 0.f;
 	}
-}
 
-void AEnemy::ImpactSpeed_Implementation(float Value)
-{
-	AddSpeed(Value);
+	if (OnSpeedChanged.IsBound())
+	{
+		OnSpeedChanged.Broadcast();
+	}
 }
 
 // Called every frame
 void AEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	
+	// Simplified enemy movement logic.
+	// It is correct to implement this logic in the AIController class,
+	// but to keep it simple and fast, let's leave it here!
+
+	// Always moving forward
+	MoveForward(1.f);
+
+	// If the enemy ran into an obstacle, then turn it clockwise until the speed becomes normal.
+
+	//if (FMath::Abs(CurrentEnemy->GetVelocity().Size()) < 10.f)
+	{
+		// FHitResult will hold all data returned by our line collision query
+		FHitResult Hit;
+		FVector TraceEnd = GetActorLocation() + GetActorForwardVector() * 200.0f;
+
+		FCollisionQueryParams QueryParams;
+		QueryParams.AddIgnoredActor(this);
+
+		GetWorld()->LineTraceSingleByChannel(Hit, GetActorLocation(), TraceEnd, ECollisionChannel::ECC_MAX, QueryParams);
+
+// #if WITH_EDITOR
+// 		DrawDebugLine(GetWorld(), GetActorLocation(), TraceEnd, Hit.bBlockingHit ? FColor::Red : FColor::Green, false, 0.1f, 0, 1.0f);
+// 		//UE_LOG(LogTemp, Log, TEXT("Tracing line: %s to %s"), *GetActorLocation().ToCompactString(), *TraceEnd.ToCompactString());
+// #endif
+	
+		// If the trace hit something, bBlockingHit will be true,
+		// and its fields will be filled with detailed info about what was hit
+		if (Hit.bBlockingHit)
+		{
+			UE_LOG(LogTemp, Log, TEXT("Trace hit actor: %s"), *Hit.GetActor()->GetName());
+
+			float AngleRotate = FMath::RandRange(0, 360);
+			GetController()->SetControlRotation(
+				FRotator(
+					GetController()->GetControlRotation().Pitch,
+					AngleRotate,
+					GetController()->GetControlRotation().Roll));
+		}
+	}
 }
 
 void AEnemy::MoveForward(float Value)
@@ -108,48 +211,6 @@ void AEnemy::MoveRight(float Value)
 	}
 }
 
-void AEnemy::TakeDamage(float DamageValue)
-{
-	CurrentHealth -= DamageValue;
-
-	if (OnHealthChanged.IsBound())
-	{
-		OnHealthChanged.Broadcast();
-	}
-	
-	if (CurrentHealth <= 0.f)
-	{
-		Destroy();
-	}
-}
-
-void AEnemy::TakeHeal(float HealValue)
-{
-	CurrentHealth += HealValue;
-
-	if (OnHealthChanged.IsBound())
-	{
-		OnHealthChanged.Broadcast();
-	}
-}
-
-void AEnemy::AddSpeed(float InAddingValue)
-{
-	if (GetCharacterMovement()->MaxWalkSpeed + InAddingValue >= 0)
-	{
-		GetCharacterMovement()->MaxWalkSpeed += InAddingValue;
-	}
-	else
-	{
-		GetCharacterMovement()->MaxWalkSpeed = 0;
-	}
-
-	if (OnSpeedChanged.IsBound())
-	{
-		OnSpeedChanged.Broadcast();
-	}
-}
-
 float AEnemy::GetCurrentHealth() const
 {
 	return CurrentHealth;
@@ -159,5 +220,3 @@ float AEnemy::GetBaseSpeed() const
 {
 	return GetCharacterMovement()->MaxWalkSpeed;
 }
-
-

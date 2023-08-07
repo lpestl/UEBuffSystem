@@ -1,60 +1,83 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
-#include "Carriers/BuffDebuffCarrierBase.h"
+﻿#include "Carriers/BuffDebuffCarrierBase.h"
 
 #include "Effects/BuffDebuffEffectBase.h"
 #include "Interfaces/IBuffReceiver.h"
 
-
-// Sets default values
 ABuffDebuffCarrierBase::ABuffDebuffCarrierBase()
 {
 	// Use a sphere as a simple collision representation
 	CollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComp"));
-	CollisionComp->InitSphereRadius(5.0f);
-	CollisionComp->BodyInstance.SetCollisionProfileName("Projectile");
-
-	CollisionComp->OnComponentHit.AddDynamic(this, &ABuffDebuffCarrierBase::OnHit);		// set up a notification for when this component hits something blocking
-
-	// Set as root component
-	RootComponent = CollisionComp;
-}
-
-void ABuffDebuffCarrierBase::Init(const FBuffDataTableRow& InData)
-{
-	BuffData = InData;
-}
-
-void ABuffDebuffCarrierBase::OnHit(
-	UPrimitiveComponent* HitComponent,
-	AActor* OtherActor,
-	UPrimitiveComponent* OtherComp,
-	FVector NormalImpulse,
-	const FHitResult& Hit)
-{
-	if (OtherActor != nullptr)
+	if (CollisionComp)
 	{
-		if (OtherActor->GetClass()->ImplementsInterface(UBuffReceiver::StaticClass()))
+		AddInstanceComponent(CollisionComp);
+
+		// Default collision settings (CDO settings settings for component)
+		CollisionComp->InitSphereRadius(5.0f);
+		CollisionComp->SetWalkableSlopeOverride(FWalkableSlopeOverride(WalkableSlope_Unwalkable, 0.f));
+		CollisionComp->CanCharacterStepUpOn = ECB_No;		
+	}
+}
+
+void ABuffDebuffCarrierBase::Init(UBuffDebuffCarrierParamsBase *InCarrierParams)
+{
+	CarrierParams = InCarrierParams;
+
+	if (CollisionComp)
+	{
+		CollisionComp->InitSphereRadius(CarrierParams->CollisionRadius);
+	}
+}
+
+void ABuffDebuffCarrierBase::SpawnChildCarriers()
+{
+	if (CarrierParams != nullptr)
+	{
+		UWorld* const World = GetWorld();
+		if (World != nullptr)
 		{
-			UWorld* const World = GetWorld();
-			if (World != nullptr)
+			for (auto&& SpawningCarrierParams : CarrierParams->ChildCarriers)
 			{
-				const FRotator SpawnRotation = GetActorRotation();
-				const FVector SpawnLocation = GetActorLocation();
-
-				//Set Spawn Collision Handling Override
+				// Set Spawn Collision Handling Override
 				FActorSpawnParameters ActorSpawnParams;
-				ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-				UClass *EffectClass = BuffData.EffectClass.LoadSynchronous();
-				if (EffectClass != nullptr)
+				ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+				ActorSpawnParams.Owner = GetOwner();
+
+				// Spawn carrier actor
+				if (auto ChildCarrier = World->SpawnActor<ABuffDebuffCarrierBase>(SpawningCarrierParams->CarrierClass, GetActorLocation(), GetActorRotation(), ActorSpawnParams))
 				{
-					auto Effect = World->SpawnActor<ABuffDebuffEffectBase>(EffectClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
-					Effect->Init(BuffData);
+					// Initialize 
+					ChildCarrier->Init(SpawningCarrierParams);
 				}
 			}
 		}
 	}
 }
 
+void ABuffDebuffCarrierBase::ApplyEffects(const TArray<AActor*>& InTargets)
+{
+	if (CarrierParams != nullptr)
+	{
+		UWorld* const World = GetWorld();
+		if (World != nullptr)
+		{
+			for (AActor* InTarget : InTargets)
+			{
+				if (InTarget->GetClass()->ImplementsInterface(UBuffReceiver::StaticClass()))
+				{
+					for (auto&& SpawningEffectParams : CarrierParams->ChildEffects)
+					{
+						if (auto EffectComponent = InTarget->AddComponentByClass(SpawningEffectParams->EffectClass, false, FTransform {}, true))
+						{							
+							if (auto Effect = Cast<UBuffDebuffEffectBase>(EffectComponent))
+							{
+								Effect->Init(SpawningEffectParams);
+							}
+							InTarget->RegisterAllComponents();
+						}
+					}
+				}
+			}
+		}
+	}
+}
