@@ -102,6 +102,7 @@ void AEnemy::AddHealth_Implementation(float AddHealthValue)
 		OnHealthChanged.Broadcast();
 	}
 
+	// Let's add a floating widget to the world, with a message about changing the parameters
 	if (GetWorld() != nullptr)
 	{
 		if (auto PointsTextActor = GetWorld()->SpawnActor<AEffectPointsView>(GetActorLocation(), GetActorRotation()))
@@ -130,6 +131,16 @@ void AEnemy::AddSpeed_Implementation(float AddSpeedValue)
 		GetCharacterMovement()->MaxWalkSpeed = 0.f;
 	}
 
+	// Let's add a floating widget to the world, with a message about changing the parameters
+	if (GetWorld() != nullptr)
+	{
+		if (auto PointsTextActor = GetWorld()->SpawnActor<AEffectPointsView>(GetActorLocation(), GetActorRotation()))
+		{
+			PointsTextActor->AddActorWorldOffset(FVector(FMath::RandRange(-150.f, 150.f), FMath::RandRange(-150.f, 150.f), FMath::RandRange(-150.f, 150.f)));
+			PointsTextActor->SetText(FString::Printf(TEXT("%d Speed"), (int32)AddSpeedValue));
+		}
+	}
+	
 	if (OnSpeedChanged.IsBound())
 	{
 		OnSpeedChanged.Broadcast();
