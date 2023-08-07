@@ -1,6 +1,8 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "UEBuffSystemDemoCharacter.h"
+
+#include "BuffSystemChain.h"
 #include "Animation/AnimInstance.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -11,6 +13,7 @@
 #include "MotionControllerComponent.h"
 #include "XRMotionControllerBase.h" // for FXRMotionControllerBase::RightHandSourceId
 #include "Carriers/Dynamic/BuffDebuffProjectileBase.h"
+#include "DemoClasses/GunsTableRow.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
@@ -170,47 +173,71 @@ void AUEBuffSystemDemoCharacter::OnFire()
 			break;
 		default: break;
 	}
-	// FGunsDataRow* GunsData = GunsDataTable->FindRow<FGunsDataRow>(GunName, TEXT(""));
-	//
-	// if (GunsData != nullptr)
-	// {
-	// 	UWorld* const World = GetWorld();
-	// 	if (World != nullptr)
-	// 	{
-	// 		if (bUsingMotionControllers)
-	// 		{
-	// 			const FRotator SpawnRotation = VR_MuzzleLocation->GetComponentRotation();
-	// 			const FVector SpawnLocation = VR_MuzzleLocation->GetComponentLocation();
-	// 			UClass *BulletClass = GunsData->CarrierClass.LoadSynchronous();
-	// 			if (BulletClass != nullptr)
-	// 			{
-	// 				auto Bullet = World->SpawnActor<ABuffDebuffProjectileBase>(BulletClass, SpawnLocation, SpawnRotation);
-	// 				Bullet->Init(*GunsData);
-	// 			}
-	// 		}
-	// 		else
-	// 		{
-	// 			const FRotator SpawnRotation = GetControlRotation();
-	// 			// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
-	// 			const FVector SpawnLocation = ((FP_MuzzleLocation != nullptr) ? FP_MuzzleLocation->GetComponentLocation() : GetActorLocation()) + SpawnRotation.RotateVector(GunOffset);
-	//
-	// 			//Set Spawn Collision Handling Override
-	// 			FActorSpawnParameters ActorSpawnParams;
-	// 			ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
-	//
-	// 			// spawn the projectile at the muzzle
-	// 			UClass *BulletClass = GunsData->CarrierClass.LoadSynchronous();
-	// 			if (BulletClass != nullptr)
-	// 			{
-	// 				auto Bullet = World->SpawnActor<ABuffDebuffCarrierBase>(BulletClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
-	// 				if (Bullet != nullptr)
-	// 				{
-	// 					Bullet->Init(*GunsData);
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-	// }
+	FGunsTableRow* GunsData = GunsDataTable->FindRow<FGunsTableRow>(GunName, TEXT(""));
+	
+	if (GunsData != nullptr)
+	{
+		UWorld* const World = GetWorld();
+		if (World != nullptr)
+		{			
+			//Set Spawn Collision Handling Override
+			FActorSpawnParameters ActorSpawnParams;
+			ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
+			ActorSpawnParams.Instigator = this;
+			ActorSpawnParams.Owner = this;
+			
+			if (bUsingMotionControllers)
+			{
+				const FRotator SpawnRotation = VR_MuzzleLocation->GetComponentRotation();
+				const FVector SpawnLocation = VR_MuzzleLocation->GetComponentLocation();
+
+				UDataAsset *BuffDataAsset = GunsData->GunParams.LoadSynchronous();
+				if (BuffDataAsset != nullptr)
+				{
+					if (auto BuffChain = Cast<UBuffSystemChain>(BuffDataAsset))
+					{
+						for (auto BuffCarrierParams : BuffChain->BuffCarriers)
+						{
+							if (BuffCarrierParams.Params->CarrierClass != nullptr)
+							{									
+								auto Bullet = World->SpawnActor<ABuffDebuffCarrierBase>(BuffCarrierParams.Params->CarrierClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
+								if (Bullet != nullptr)
+								{
+									Bullet->Init(BuffCarrierParams.Params);
+								}
+							}
+						}
+					}
+				}
+			}
+			else
+			{
+				const FRotator SpawnRotation = GetControlRotation();
+				// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
+				const FVector SpawnLocation = ((FP_MuzzleLocation != nullptr) ? FP_MuzzleLocation->GetComponentLocation() : GetActorLocation()) + SpawnRotation.RotateVector(GunOffset);
+		
+				// spawn the projectile at the muzzle
+				UDataAsset *BuffDataAsset = GunsData->GunParams.LoadSynchronous();
+				if (BuffDataAsset != nullptr)
+				{
+					if (auto BuffChain = Cast<UBuffSystemChain>(BuffDataAsset))
+					{
+						for (auto BuffCarrierParams : BuffChain->BuffCarriers)
+						{
+							if (BuffCarrierParams.Params->CarrierClass != nullptr)
+							{									
+								auto Bullet = World->SpawnActor<ABuffDebuffCarrierBase>(BuffCarrierParams.Params->CarrierClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
+								if (Bullet != nullptr)
+								{
+									Bullet->Init(BuffCarrierParams.Params);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
 
 	// try and play the sound if specified
 	if (FireSound != nullptr)

@@ -14,23 +14,20 @@ ABuffDebuffPickupBase::ABuffDebuffPickupBase()
 	// Set as root component
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 	
-	// Use a sphere as a simple collision representation
-	CollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComp"));
 	if (CollisionComp)
 	{
-		AddInstanceComponent(CollisionComp);
-
-		// Default collision settings (CDO settings settings for component)
-		CollisionComp->InitSphereRadius(50.0f);
 		CollisionComp->BodyInstance.SetCollisionProfileName("ActivateCollision");
-		CollisionComp->SetWalkableSlopeOverride(FWalkableSlopeOverride(WalkableSlope_Unwalkable, 0.f));
-		CollisionComp->CanCharacterStepUpOn = ECB_No;
-
+		
 		// Subscribe to the "OnBeginOverlap" method
 		CollisionComp->OnComponentBeginOverlap.AddDynamic(this, &ABuffDebuffPickupBase::OnActivateCollisionComponentBeginOverlap);
 		
 		CollisionComp->SetupAttachment(RootComponent);
 	}
+}
+
+void ABuffDebuffPickupBase::Init(UBuffDebuffCarrierParamsBase* InCarrierParams)
+{
+	Super::Init(InCarrierParams);
 }
 
 void ABuffDebuffPickupBase::OnActivateCollisionComponentBeginOverlap(
@@ -44,26 +41,15 @@ void ABuffDebuffPickupBase::OnActivateCollisionComponentBeginOverlap(
 	// If Overlapping actor valid AND the actor implements the "Buff Receiver" interface
 	if ((OtherActor != nullptr) && (OtherActor->GetClass()->ImplementsInterface(UBuffReceiver::StaticClass())))
 	{
-		UWorld* const World = GetWorld();
-		if (World != nullptr)
-		{
-			const FRotator SpawnRotation = GetActorRotation();
-			const FVector SpawnLocation = GetActorLocation();
+		// Spawn child carriers (if is not empty)
+		SpawnChildCarriers();
 
-			// Set Spawn Collision Handling Override
-			FActorSpawnParameters ActorSpawnParams;
-			ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
-			// UClass *EffectClass = BuffData.EffectClass.LoadSynchronous();
-			// if (EffectClass != nullptr)
-			// {
-			// 	// When an effect spawns, it automatically impacts objects
-			// 	auto Effect = World->SpawnActor<ABuffDebuffEffectBase>(EffectClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
-			// 	Effect->Init(BuffData);
-			// }
-
-			// After the effect spawns - the carrier object is no longer needed and can be destroyed
-			Destroy();
-		}
+		// Apply effects on hitting actor
+		TArray<AActor *> Targets;
+		Targets.Add(OtherActor);
+		ApplyEffects(Targets);
+		
+		// After the effect spawns - the carrier object is no longer needed and can be destroyed
+		Destroy();
 	}
 }

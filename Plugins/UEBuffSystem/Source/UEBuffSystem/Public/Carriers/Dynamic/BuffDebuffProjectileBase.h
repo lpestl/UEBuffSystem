@@ -9,7 +9,23 @@
 class UProjectileMovementComponent;
 class USphereComponent;
 
-UCLASS()
+UCLASS(BlueprintType, EditInlineNew)
+class UEBUFFSYSTEM_API UBuffDebuffProjectileParams : public UBuffDebuffCarrierParamsBase
+{
+	GENERATED_BODY()
+
+public:	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Projectile Settings")
+	float Speed = 3000.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Projectile Settings")
+	float LifeTime = 3.f;
+};
+
+/*
+ *
+ */
+UCLASS(BlueprintType)
 class UEBUFFSYSTEM_API ABuffDebuffProjectileBase : public ABuffDebuffCarrierBase
 {
 	GENERATED_BODY()
@@ -18,9 +34,8 @@ public:
 	// Sets default values for this actor's properties
 	ABuffDebuffProjectileBase();
 
-	/** Returns CollisionComp subobject **/
-	USphereComponent* GetCollisionComp() const { return CollisionComp; }
-
+	virtual void Init(UBuffDebuffCarrierParamsBase* InCarrierParams) override;
+	
 	/** Returns ProjectileMovement subobject **/
 	UProjectileMovementComponent* GetProjectileMovement() const { return ProjectileMovement; }
 	
@@ -29,9 +44,6 @@ public:
 	virtual void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 protected:	
-	/** Sphere collision component */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Projectile)
-	USphereComponent* CollisionComp;
 	
 	/** Projectile movement component */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement, meta = (AllowPrivateAccess = "true"))

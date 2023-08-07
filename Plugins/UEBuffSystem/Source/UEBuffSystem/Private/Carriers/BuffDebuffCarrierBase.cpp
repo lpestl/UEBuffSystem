@@ -3,9 +3,29 @@
 #include "Effects/BuffDebuffEffectBase.h"
 #include "Interfaces/IBuffReceiver.h"
 
+ABuffDebuffCarrierBase::ABuffDebuffCarrierBase()
+{
+	// Use a sphere as a simple collision representation
+	CollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComp"));
+	if (CollisionComp)
+	{
+		AddInstanceComponent(CollisionComp);
+
+		// Default collision settings (CDO settings settings for component)
+		CollisionComp->InitSphereRadius(5.0f);
+		CollisionComp->SetWalkableSlopeOverride(FWalkableSlopeOverride(WalkableSlope_Unwalkable, 0.f));
+		CollisionComp->CanCharacterStepUpOn = ECB_No;		
+	}
+}
+
 void ABuffDebuffCarrierBase::Init(UBuffDebuffCarrierParamsBase *InCarrierParams)
 {
 	CarrierParams = InCarrierParams;
+
+	if (CollisionComp)
+	{
+		CollisionComp->InitSphereRadius(CarrierParams->CollisionRadius);
+	}
 }
 
 void ABuffDebuffCarrierBase::SpawnChildCarriers()
@@ -36,16 +56,19 @@ void ABuffDebuffCarrierBase::SpawnChildCarriers()
 
 void ABuffDebuffCarrierBase::ApplyEffects(const TArray<AActor*>& InTargets)
 {
-	UWorld* const World = GetWorld();
-	if (World != nullptr)
+	if (CarrierParams != nullptr)
 	{
-		for (auto&& InTarget : InTargets)
+		UWorld* const World = GetWorld();
+		if (World != nullptr)
 		{
-			if (InTarget->GetClass()->ImplementsInterface(UBuffReceiver::StaticClass()))
+			for (auto&& InTarget : InTargets)
 			{
-				for (auto&& SpawningEffectParams : CarrierParams->ChildEffects)
+				if (InTarget->GetClass()->ImplementsInterface(UBuffReceiver::StaticClass()))
 				{
-					InTarget->AddComponent(SpawningEffectParams->Name, false, FTransform {}, SpawningEffectParams->EffectClass);
+					for (auto&& SpawningEffectParams : CarrierParams->ChildEffects)
+					{
+						InTarget->AddComponent(SpawningEffectParams->Name, false, FTransform {}, SpawningEffectParams->EffectClass);
+					}
 				}
 			}
 		}

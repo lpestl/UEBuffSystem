@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Components/SphereComponent.h"
 #include "GameFramework/Actor.h"
 #include "BuffDebuffCarrierBase.generated.h"
 
@@ -22,6 +23,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Spawning class")
 	TSubclassOf<ABuffDebuffCarrierBase> CarrierClass;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Settings")
+	float CollisionRadius;	
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Instanced, Category="Next generation")
 	TArray<UBuffDebuffCarrierParamsBase *> ChildCarriers;
 
@@ -38,8 +42,13 @@ class UEBUFFSYSTEM_API ABuffDebuffCarrierBase : public AActor
 	GENERATED_BODY()
 
 public:
+	ABuffDebuffCarrierBase();
+	
 	UFUNCTION(BlueprintCallable)
 	virtual void Init(UBuffDebuffCarrierParamsBase *InCarrierParams);
+
+	/** Returns CollisionComp subobject **/
+	USphereComponent* GetCollisionComp() const { return CollisionComp; }
 
 	UFUNCTION(BlueprintCallable)
 	void SpawnChildCarriers();
@@ -48,6 +57,11 @@ public:
 	void ApplyEffects(const TArray<AActor *>& InTargets);
 	
 protected:
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Instanced, Category="Carrier chain")
 	UBuffDebuffCarrierParamsBase *CarrierParams = nullptr;
+	
+	/** Sphere collision component */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Projectile)
+	USphereComponent* CollisionComp;
 };

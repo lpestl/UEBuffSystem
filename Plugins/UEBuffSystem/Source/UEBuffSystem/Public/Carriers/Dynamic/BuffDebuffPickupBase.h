@@ -16,13 +16,11 @@ class UEBUFFSYSTEM_API ABuffDebuffPickupBase : public ABuffDebuffCarrierBase
 public:
 	// Sets default values for this actor's properties
 	ABuffDebuffPickupBase();
+
+	virtual void Init(UBuffDebuffCarrierParamsBase* InCarrierParams) override;
 	
 	/** A virtual method called on "BeginOverlap". To change the basic logic, you need to override it. */
 	UFUNCTION()
 	virtual void OnActivateCollisionComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 	
-protected:	
-	/** Sphere collision component */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Trigger)
-	USphereComponent* CollisionComp;
 };

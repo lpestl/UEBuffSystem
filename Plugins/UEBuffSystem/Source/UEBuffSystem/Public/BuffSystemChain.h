@@ -7,15 +7,24 @@
 #include "Engine/DataAsset.h"
 #include "BuffSystemChain.generated.h"
 
+USTRUCT(BlueprintType)
+struct FCarrierParams
+{
+	GENERATED_BODY()
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Instanced)
+	UBuffDebuffCarrierParamsBase *Params;
+};
+
 /**
  * 
  */
-UCLASS()
+UCLASS(BlueprintType)
 class UEBUFFSYSTEM_API UBuffSystemChain : public UPrimaryDataAsset
 {
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(Instanced, EditDefaultsOnly, NoClear)
-	TArray<ABuffDebuffCarrierBase *> BuffCarriers;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<FCarrierParams> BuffCarriers;
 };
