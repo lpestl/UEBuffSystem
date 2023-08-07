@@ -28,6 +28,17 @@ ABuffDebuffPickupBase::ABuffDebuffPickupBase()
 void ABuffDebuffPickupBase::Init(UBuffDebuffCarrierParamsBase* InCarrierParams)
 {
 	Super::Init(InCarrierParams);
+
+	if (CarrierParams != nullptr)
+	{
+		if (auto PickupParams = Cast<UBuffDebuffPickupParams>(CarrierParams))
+		{
+			if (PickupParams->LifeTime > 0.f)
+			{
+				InitialLifeSpan = PickupParams->LifeTime;
+			}
+		}
+	}
 }
 
 void ABuffDebuffPickupBase::OnActivateCollisionComponentBeginOverlap(
@@ -50,6 +61,15 @@ void ABuffDebuffPickupBase::OnActivateCollisionComponentBeginOverlap(
 		ApplyEffects(Targets);
 		
 		// After the effect spawns - the carrier object is no longer needed and can be destroyed
-		Destroy();
+		if (CarrierParams != nullptr)
+		{
+			if (auto PickupParams = Cast<UBuffDebuffPickupParams>(CarrierParams))
+			{
+				if (PickupParams->bIsDestroyAfterOverlap)
+				{
+					Destroy();
+				}
+			}
+		}
 	}
 }

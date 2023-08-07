@@ -14,6 +14,8 @@
 #include "XRMotionControllerBase.h" // for FXRMotionControllerBase::RightHandSourceId
 #include "Carriers/Dynamic/BuffDebuffProjectileBase.h"
 #include "DemoClasses/GunsTableRow.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/PawnMovementComponent.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
@@ -148,6 +150,21 @@ void AUEBuffSystemDemoCharacter::SetupPlayerInputComponent(class UInputComponent
 	PlayerInputComponent->BindAxis("TurnRate", this, &AUEBuffSystemDemoCharacter::TurnAtRate);
 	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
 	PlayerInputComponent->BindAxis("LookUpRate", this, &AUEBuffSystemDemoCharacter::LookUpAtRate);
+}
+
+void AUEBuffSystemDemoCharacter::AddHealth_Implementation(float AddHealthValue)
+{
+	IBuffReceiver::AddHealth_Implementation(AddHealthValue);
+}
+
+void AUEBuffSystemDemoCharacter::AddSpeed_Implementation(float AddSpeedValue)
+{
+	IBuffReceiver::AddSpeed_Implementation(AddSpeedValue);
+
+	if (auto MovementComponent = GetCharacterMovement())
+	{
+		MovementComponent->MaxWalkSpeed += AddSpeedValue;
+	}
 }
 
 void AUEBuffSystemDemoCharacter::OnFire()

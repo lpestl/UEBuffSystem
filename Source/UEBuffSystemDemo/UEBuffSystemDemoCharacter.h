@@ -105,6 +105,10 @@ public:
 	EGunType CurrentGunType = EGunType::INSTANT_LIFE_REDUCTION;
 	
 protected:
+	/** IBuffReceiver interface start*/	
+	virtual void AddHealth_Implementation(float AddHealthValue) override;
+	virtual void AddSpeed_Implementation(float AddSpeedValue) override;	
+	/** IBuffReceiver interface end*/
 	
 	/** Fires a projectile. */
 	void OnFire();

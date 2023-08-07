@@ -56,8 +56,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void ApplyEffects(const TArray<AActor *>& InTargets);
 	
-protected:
-	
+protected:	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Instanced, Category="Carrier chain")
 	UBuffDebuffCarrierParamsBase *CarrierParams = nullptr;
 	

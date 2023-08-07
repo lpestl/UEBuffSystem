@@ -8,7 +8,20 @@
 
 class USphereComponent;
 
-UCLASS()
+UCLASS(BlueprintType, EditInlineNew)
+class UEBUFFSYSTEM_API UBuffDebuffPickupParams : public UBuffDebuffCarrierParamsBase
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Pickup Settings")
+	bool bIsDestroyAfterOverlap = true;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Pickup Settings")
+	float LifeTime = 0.f;
+};
+
+UCLASS(BlueprintType)
 class UEBUFFSYSTEM_API ABuffDebuffPickupBase : public ABuffDebuffCarrierBase
 {
 	GENERATED_BODY()
