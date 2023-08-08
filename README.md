@@ -4,6 +4,7 @@ Simple system of Buffs (effects that affect game entities). The system allows yo
 
 ![Demo preview](media/00_demo_preview.png)
 
+![Rotten banana in game](media/banana-bomb.gif)
 
 # Content
 
@@ -13,14 +14,24 @@ Simple system of Buffs (effects that affect game entities). The system allows yo
     * [Step 1: Demo characters](#step-1-demo-characters)
     * [Step 2: Base classe](#step-2-base-classes)
     * [Step 3: Parameters and parameter chains](#step-3-parameters-and-parameter-chains)
-1. [How to use]()
+1. [How to use](#how-to-use)
+	1. [Projectile carrier](#prjectile-carrier)
+		* [Step 1: Create child blueprint from ABuffDebuffProjectileBase class](#step-1-create-child-blueprint-from-abuffdebuffprojectilebase-class)
+		* [Step 2: Customize the visual display for each carrier](#step-2-customize-the-visual-display-for-each-carrier)
+		* [Step 3: Create a Data Asset for the Parameter Chain and configure it](#step-3-create-a-data-asset-for-the-parameter-chain-and-configure-it)
+		* [Step 4: Link your emitter (Gun in the demo) and your DataAsset](#step-4-link-your-emitter-gun-in-the-demo-and-your-dataasset)
+	1. [Pickup carrier](#pickup-carrier)
+		* [Step 1: Create child blueprint from ABuffDebuffPickupBase class](#step-1-create-child-blueprint-from-abuffdebuffpickupbase-class)
+		* [Step 2: Customize the visual display for each pickup object](#step-2-customize-the-visual-display-for-each-pickup-object)
+		* [Step 3: Configure Parameter Chain in panel "Details"](#step-3-configure-parameter-chain-in-panel-details)
+	1. [Result of the use case](#result-of-the-use-case)
 
 # Technical task
 
 The original text of the technical task (```It is desirable to implement on UE4```):
 
 ```
-Тестовое задание
+Техническое задание
 
 Реализовать систему Баффов (эффекты, влияющие на игровые сущности). Реализовать именно новую систему, а не использовать Gameplay Ability System.
 
@@ -366,4 +377,116 @@ Here is an example of a completed and configured Data Asset for the parent trans
 
 # How to use
 
-// TODO:
+Using the plugin in a project is quite simple. Game Designers are provided with a tool for creating chains of transporters and buffs, in the form of a Data Asset, and the visual composition of transporters and effects can be easily adjusted in the blueprint in the usual way.
+
+## Prjectile carrier
+
+### Step 1: Create child blueprint from ABuffDebuffProjectileBase class
+
+To create a projectile that carriers buffs or debuffs, you must first create a child blueprint from the `ABuffDebuffProjectileBase` class in order to customize its visual component.
+
+![Create blueprint](Content/Geometry/Textures/06_create-blueprint.png)
+
+
+![Child of ABuffDebuffProjectileBase](Content/Geometry/Textures/07_buffdebuffprojectile-parent.png)
+
+![Name it](Content/Geometry/Textures/09_name-it.png)
+
+### Step 2: Customize the visual display for each carrier
+
+![Visual part 1](Content/Geometry/Textures/10_setting-up-visual.png)
+
+![Create from ABuffDebuffPickupBase](Content/Geometry/Textures/08_buffdebuffpickup-parent.png)
+
+![Visual part 2](Content/Geometry/Textures/11_banana-explosion-setting-up.png)
+
+```Bash
+> 
+> IMPORTANT:
+> You can override logic if need
+>   
+```
+
+![Override logic if need](Content/Geometry/Textures/12_banana-explosion-logic.png)
+
+### Step 3: Create a Data Asset for the Parameter Chain and configure it
+
+![Create chain DataAsset](Content/Geometry/Textures/13_create-data-asset-chain.png)
+
+![Configure first banana](Content/Geometry/Textures/14_configure-first-iteration-banana.png)
+
+![Configure explosion](Content/Geometry/Textures/15_configure-first-exposion.png)
+
+![Configure child bananas](Content/Geometry/Textures/16_configure-child-bananas.png)
+
+![Configure effects](Content/Geometry/Textures/17_configure-effects.png)
+
+### Step 4: Link your emitter (Gun in the demo) and your DataAsset
+
+![Link Gun and DataAsset](Content/Geometry/Textures/18_add-in-data-table.png)
+
+```Bash
+>
+> IMPORTANT:
+> Don't forget to initialize your carrier right after spawning!
+>
+```
+
+In code:
+
+```C++
+if (BuffCarrierParams.Params->CarrierClass != nullptr)
+{									
+	auto Bullet = World->SpawnActor<ABuffDebuffCarrierBase>(BuffCarrierParams.Params->CarrierClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
+	if (Bullet != nullptr)
+	{
+		Bullet->Init(BuffCarrierParams.Params);
+	}
+}
+```
+
+Or in Blueprint:
+
+![Dont forget initialize afer spawn](Content/Geometry/Textures/19_initialize-it-in-bp.png)
+
+## Pickup carrier
+
+### Step 1: Create child blueprint from ABuffDebuffPickupBase class
+
+![Create blueprint from ABuffDebuffPickup](Content/Geometry/Textures/08_buffdebuffpickup-parent.png)
+
+### Step 2: Customize the visual display for each pickup object
+
+![Customize the visual display for each pickup object](Content/Geometry/Textures/21_configure-visual.png)
+
+### Step 3: Configure Parameter Chain in panel "Details"
+
+![Configure Parameter Chain in panel "Details"](Content/Geometry/Textures/21_configure-in-details.png)
+
+```Bash
+>
+> IMPORTANT:
+> Don't forget to initialize your carrier right after spawning!
+>
+```
+
+In code:
+
+```C++
+if (BuffCarrierParams.Params->CarrierClass != nullptr)
+{									
+	auto Bullet = World->SpawnActor<ABuffDebuffCarrierBase>(BuffCarrierParams.Params->CarrierClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
+	if (Bullet != nullptr)
+	{
+		Bullet->Init(BuffCarrierParams.Params);
+	}
+}
+```
+
+Or in Blueprint:
+
+![Dont forget initialize afer spawn](Content/Geometry/Textures/19_initialize-it-in-bp.png)
+
+## Result of the use case
+
+![Rotten banana in game](media/banana-bomb.gif)
