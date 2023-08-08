@@ -49,6 +49,8 @@ void ABuffDebuffProjectileBase::Init(UBuffDebuffCarrierParamsBase* InCarrierPara
 
 		ProjectileMovement->InitialSpeed = ProjectileParams->Speed;
 		ProjectileMovement->MaxSpeed = ProjectileParams->Speed;
+
+		bNeedActivateByEndPlay = ProjectileParams->bIsActivateByEndOfLife;
 	}
 }
 
@@ -78,10 +80,25 @@ void ABuffDebuffProjectileBase::OnHit(
 			TArray<AActor *> Targets;
 			Targets.Add(OtherActor);
 			ApplyEffects(Targets);
-			
+
+			if (auto ProjectileParams = Cast<UBuffDebuffProjectileParams>(CarrierParams))
+			{
+				bNeedActivateByEndPlay = false;
+			}
 			// After the effect spawns - the carrier object is no longer needed and can be destroyed
 			Destroy();
 		}
+	}
+}
+
+void ABuffDebuffProjectileBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+
+	if (bNeedActivateByEndPlay)
+	{
+		// Spawn child carriers (if is not empty)
+		SpawnChildCarriers();
 	}
 }
 

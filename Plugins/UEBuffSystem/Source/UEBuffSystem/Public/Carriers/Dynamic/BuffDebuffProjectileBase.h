@@ -20,6 +20,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Projectile Settings")
 	float LifeTime = 3.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Projectile Settings")
+	bool bIsActivateByEndOfLife = false;
 };
 
 /*
@@ -43,10 +46,14 @@ public:
 	UFUNCTION()
 	virtual void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
-protected:	
-	
+protected:
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
 	/** Projectile movement component */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement, meta = (AllowPrivateAccess = "true"))
 	UProjectileMovementComponent* ProjectileMovement;
 
+private:
+	UPROPERTY()
+	bool bNeedActivateByEndPlay = false;
 };
